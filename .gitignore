@@ -1,0 +1,10 @@
+.nextflow.log*
+work/*
+results/*
+.nextflow/*
+report*
+timeline*
+trace*
+dag*
+0*
+junk/*
