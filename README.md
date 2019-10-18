@@ -1,5 +1,5 @@
-# mmhic-nf
-## mmHiC Preprocessing Nextflow Pipline
+# scshic_pipeline
+## scsHi-C Preprocessing Nextflow Pipline
 IMBA - Gerlich Groupe <br>
 christoph.langer@imba.oeaw.ac.at <br>
 C.C.H. Langer, M. Mitter, A. Goloborodko
