@@ -25,14 +25,15 @@ It will contain a message when finished. This terminal can be closed.
 #CHANGE FOLLOWING 5 PARAMETERS
 ########################
 #Small example
-OUT="/groups/gerlich/labinfo/scratch/nf-out"
+OUT="./nf-out"
+#Only use a number if you have multiple flowcells in the experiment, extend it like this: 046551, 046552, ... TODO: Fix this bahaviour.
 EXP_ID="04655"
 MACHINE="Iseq"
 SAMPLE="/groups/gerlich/labinfo/scratch/samplesheet_4655.csv"
 INPUT="/groups/gerlich/labinfo/scratch/20190730_FS10000507_18_BPC29604-1714/"
 
 #Big example
-#OUT="/groups/gerlich/labinfo/scratch/nf-out"
+#OUT="./nf-out"
 #EXP_ID="04655"
 #MACHINE="Novaseq"
 #SAMPLE="/groups/gerlich/labinfo/scratch/samplesheet_4655_2.csv"
@@ -44,6 +45,8 @@ INPUT="/groups/gerlich/labinfo/scratch/20190730_FS10000507_18_BPC29604-1714/"
 EXP_ID_CLEAN=$((10#$EXP_ID))
 #Workdir on fast scratch
 WORKDIR=/scratch-cbe/users/${USER}/nf-workdir/${EXP_ID_CLEAN}-${MACHINE}/
+#Slow backup dir
+#WORKDIR=./nf-workdir/${EXP_ID_CLEAN}-${MACHINE}/
 BASEDIR=$(pwd)
 #Sends Email to default institute adresse
 NOTIFICATION_EMAIL=${USER}@imba.oeaw.ac.at
@@ -60,6 +63,9 @@ if [ $MACHINE == "Novaseq" ]
 then
   FLOWCELL="true"
 fi
+
+#Otherwise it saves the singularity image into the workdir
+export NXF_SINGULARITY_CACHEDIR=$HOME/.singularity
 
 #Redirects nohub into a log file, redirect the stderr to the same place we are redirecting the stdout and then starts tail to keep displaying the changing file.
 nohup nextflow ${BASEDIR}/main.nf -profile cbe \

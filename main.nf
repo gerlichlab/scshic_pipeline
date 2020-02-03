@@ -129,7 +129,7 @@ process bcl2fastq{
         !params.skipDemultiplexing
     script:
         """
-        singularity run --tmpdir ~/ docker://docker.io/gerlichlab/bcl2fastq bcl2fastq -R $params.inputfolder --sample-sheet $params.sampleheet -o .
+        bcl2fastq -R $params.inputfolder --sample-sheet $params.sampleheet -o .
         """
 }
 

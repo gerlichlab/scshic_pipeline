@@ -8,3 +8,5 @@ trace*
 dag*
 0*
 junk/*
+*nf-workdir
+*.log
