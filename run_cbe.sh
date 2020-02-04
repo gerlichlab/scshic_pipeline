@@ -25,11 +25,11 @@ It will contain a message when finished. This terminal can be closed.
 #CHANGE FOLLOWING 5 PARAMETERS
 ########################
 #Small example
-OUT="./nf-out"
+OUT=$(pwd)"/nf-out"
 #Only use a number if you have multiple flowcells in the experiment, extend it like this: 046551, 046552, ... TODO: Fix this bahaviour.
 EXP_ID="04655"
 MACHINE="Iseq"
-SAMPLE="/groups/gerlich/labinfo/scratch/samplesheet_4655.csv"
+SAMPLE="/groups/gerlich/labinfo/scratch/samplesheet_4655_2.csv"
 INPUT="/groups/gerlich/labinfo/scratch/20190730_FS10000507_18_BPC29604-1714/"
 
 #Big example
