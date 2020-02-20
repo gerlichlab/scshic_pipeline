@@ -3,8 +3,9 @@
 DATE=$(date +"%Y%m%d%H%M%S")
 
 #If you can not use containers below you will find the minimum installation 
-#module load singularity/3.1.0 or whathever the newest version currently is (find via the command: module spider singularity)
-#Pull gerlichlab/bcl2fastq:latest and gerlichlab/ngs_docker:old_cooltools on the lopgin node once, to work around an IT bug.
+#module load singularity/3.4.1 or whathever the newest version currently is (find via the command: module spider singularity)
+#module load nextflow/19.10.0
+#Pull the containers gerlichlab/bcl2fastq:latest and gerlichlab/ngs_docker:old_cooltools on the lopgin node once, to work around an IT bug.
 
 echo "========================================================
 Log of the pipeline run is written to 'mmhic_$DATE.log' and can be observed in this terminal.
