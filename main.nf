@@ -600,7 +600,3 @@ process copy_to_output_novaseq{
         cp -rL ../../../$outputFolder/s4t_merged_pairsam $params.outdir/$outputFolder/.
         """
 }
-
-
-dedup_pairsam", mode: 'symlink'
-        saveAs: {filename -> filename.endsWith(".stats") ? "stats/$filename" : "$filename"}
