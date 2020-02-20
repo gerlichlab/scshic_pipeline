@@ -374,7 +374,7 @@ process sort_pairs{
  */
 
 process dedup_pairs{
-    publishDir "$outputFolder/dedup_pairsam", mode: 'symlink'
+    publishDir "$outputFolder/dedup_pairsam", mode: 'symlink',
         saveAs: {filename -> filename.endsWith(".stats") ? "stats/$filename" : "$filename"}
     input:
         file(pairsam) from CH_sorted_pairsam
