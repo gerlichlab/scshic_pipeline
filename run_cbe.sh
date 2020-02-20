@@ -2,18 +2,9 @@
 
 DATE=$(date +"%Y%m%d%H%M%S")
 
-#If you can not use containers below you will find the minimum installation and conda environment
-#module load singularity/3.1.0
-#module load anaconda3/2019.03
-#module load gcc/7.3.0-2.30
-#module load bwa/0.7.17-foss-2018b
-#module load fastqc/0.11.8-java-1.8
-
-#This is my very special environment with everthing installed
-#conda create --name snowflake
-#conda activate snowflake
-#conda install -c conda-forge -c bioconda nextflow pbgzip pairtools cooler pysam numpy pandas click cython conda graphviz 
-#conda activate snowflake
+#If you can not use containers below you will find the minimum installation 
+#module load singularity/3.1.0 or whathever the newest version currently is (find via the command: module spider singularity)
+#Pull gerlichlab/bcl2fastq:latest and gerlichlab/ngs_docker:old_cooltools on the lopgin node once, to work around an IT bug.
 
 echo "========================================================
 Log of the pipeline run is written to 'mmhic_$DATE.log' and can be observed in this terminal.
