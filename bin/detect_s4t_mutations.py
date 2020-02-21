@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 
-from seq_mismatches import get_mismatches_c
 import sys
 import pandas as pd
 import pysam
@@ -8,6 +7,7 @@ import click
 import pairtools
 import pyximport
 pyximport.install()
+from seq_mismatches import get_mismatches_c
 
 
 CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
