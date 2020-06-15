@@ -6,6 +6,11 @@ C.C.H. Langer, M. Mitter, A. Goloborodko
 
 ## A modular Hi-C mapping pipeline for reproducible data analysis.
 
+#If you can not use containers below you will find the minimum installation 
+#module load singularity/3.4.1 or whathever the newest version currently is (find via the command: module spider singularity)
+#module load nextflow/19.10.0 or any newer version
+#Attention: pull the containers gerlichlab/bcl2fastq:latest and gerlichlab/scshic_docker:latest on the lopgin node once, to work around an IT bug.
+
 The `scshic` pipeline aims to provide the following preprocessing functionality:
 
 - Align the sequences of Hi-C molecules to the reference genome
@@ -155,6 +160,7 @@ for compatibility with some public software tools such as picard MarkDuplicates.
 - [pairtools](https://github.com/mirnylab/pairtools) 0.3.0
 - a custom s4T detection python/cython scripts included in this repo
 - [cooler](https://github.com/mirnylab/cooler) 0.8.6
+
 
 ### Containers
 All components have been packaged into containers:
