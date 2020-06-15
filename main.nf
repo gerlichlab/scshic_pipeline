@@ -29,8 +29,6 @@ Pipeline overview:
  ----------------------------------------------------------------------------------------
 */
 
-//TODO ADD HELA SNIP MApper
-
 //Mandatory prameters need to be set in run script
 params.inputfolder 
 params.sampleheet 
@@ -327,47 +325,26 @@ process align_w_bwa{
 
 
 /*
- * STEP 5 - Parse: find ligation junctions in .sam, make .pairsam
+ * STEP 5 AND STEP 5.2 - Parse: find ligation junctions in .sam, make .pairsam - Sort the .pairsam files
  */
 
 process parse_pairs{
-    publishDir "$outputFolder/parsed_pairsam", mode: 'symlink'
+    publishDir "$outputFolder/pairsam", mode: 'symlink'
     input:
         file(bwa_sam) from CH_bwa_results
     output:
-        file "*.pairsam" into CH_parsed_pairsam
+        file "*.pairsam.gz" into CH_pairsam
         file "*.txt" into parsed_stats
     script:
         barcode = bwa_sam.getName().tokenize('_').get(0)
         sample_ID = bwa_sam.getName().tokenize('_').get(1)
         file_name = "${barcode}_${sample_ID}"
-        //TODO Tune parameters
+        //TODO Tune parameters and take parameters from conf
         """
-        pairtools parse -c $params.chrSizes --add-columns mapq -o ${file_name}.pairsam --nproc-in $nproc_pairsam --output-stats ${file_name}_stats.txt $bwa_sam
-        """
-}
-
-
-/*
- * STEP 5.2 - Sort the .pairsam files
- */
-
-process sort_pairs{
-    publishDir "$outputFolder/sorted_pairsam", mode: 'symlink'
-    input:
-        file(pairsam) from CH_parsed_pairsam
-    output:
-        file "*.pairsam.lz4" into CH_sorted_pairsam
-    script:
-        barcode = pairsam.getName().tokenize('_').get(0)
-        sample_ID = pairsam.getName().tokenize('_').get(1).tokenize('.').get(0)
-        file_name = "${barcode}_${sample_ID}"
-        //TODO Tune parameters
-        """
-        pairtools sort --memory $memory_sort -o ${file_name}.sorted.pairsam.lz4 --nproc-out $nproc_out_sort  --nproc $nproc_sort $pairsam
+        pairtools parse -c $params.chrSizes --add-columns mapq --nproc-in $nproc_pairsam --output-stats ${file_name}_stats.txt $bwa_sam \ 
+            | pairtools sort --memory $memory_sort -o ${file_name}.sorted.pairsam.gz --nproc-out $nproc_out_sort  --nproc $nproc_sort $pairsam 
         """
 }
-
 
 /*
  * STEP 5.3 - Dedup: Find and remove PCR/optical duplicates.
@@ -377,7 +354,7 @@ process dedup_pairs{
     publishDir "$outputFolder/dedup_pairsam", mode: 'symlink',
         saveAs: {filename -> filename.endsWith(".stats") ? "stats/$filename" : "$filename"}
     input:
-        file(pairsam) from CH_sorted_pairsam
+        file(pairsam) from CH_pairsam
     output:
         file "*.pairsam.gz" into CH_dedup_pairsam_main
         file "*.stats" into CH_dedup_stats
@@ -406,7 +383,6 @@ process detect_s4t{
         barcode = pairsam.getName().tokenize('_').get(0)
         sample_ID = pairsam.getName().tokenize('_').get(1).tokenize('.').get(0)
         file_name = "${barcode}_${sample_ID}"
-        //TODO Fast S4T 
         // $baseDir is the location of main.nf
         """
         python ${baseDir}/bin/detect_s4t_mutations.py --chunksize 5000000 -o ${file_name}.dedup.s4t.pairsam.gz $pairsam
