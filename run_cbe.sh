@@ -14,7 +14,7 @@ It will contain a message when finished. This terminal can be closed.
 #Small example
 OUT=$(pwd)"/nf-out"
 #Only use a number if you have multiple flowcells in the experiment, extend it like this: 046551, 046552, ... TODO: Fix this bahaviour.
-EXP_ID="04655"
+EXP_ID="046554"
 MACHINE="Iseq"
 SAMPLE="/groups/gerlich/labinfo/scratch/samplesheet_4655_2.csv"
 INPUT="/groups/gerlich/labinfo/scratch/20190730_FS10000507_18_BPC29604-1714/"

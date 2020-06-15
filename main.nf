@@ -341,7 +341,7 @@ process parse_pairs{
         file_name = "${barcode}_${sample_ID}"
         //TODO Tune parameters and take parameters from conf
         """
-        pairtools parse -c $params.chrSizes --add-columns mapq --nproc-in $nproc_pairsam --output-stats ${file_name}_stats.txt $bwa_sam | pairtools sort --memory $memory_sort -o ${file_name}.sorted.pairsam.gz --nproc-out $nproc_out_sort  --nproc $nproc_sort $pairsam 
+        pairtools parse -c $params.chrSizes --add-columns mapq --nproc-in $nproc_pairsam --output-stats ${file_name}_stats.txt $bwa_sam | pairtools sort --memory $memory_sort -o ${file_name}.sorted.pairsam.gz --nproc-out $nproc_out_sort  --nproc $nproc_sort
         """
 }
 
