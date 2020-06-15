@@ -2,18 +2,10 @@
 
 DATE=$(date +"%Y%m%d%H%M%S")
 
-#If you can not use containers below you will find the minimum installation and conda environment
-#module load singularity/3.1.0
-#module load anaconda3/2019.03
-#module load gcc/7.3.0-2.30
-#module load bwa/0.7.17-foss-2018b
-#module load fastqc/0.11.8-java-1.8
-
-#This is my very special environment with everthing installed
-#conda create --name snowflake
-#conda activate snowflake
-#conda install -c conda-forge -c bioconda nextflow pbgzip pairtools cooler pysam numpy pandas click cython conda graphviz 
-#conda activate snowflake
+#If you can not use containers below you will find the minimum installation 
+#module load singularity/3.4.1 or whathever the newest version currently is (find via the command: module spider singularity)
+#module load nextflow/19.10.0
+#Pull the containers gerlichlab/bcl2fastq:latest and gerlichlab/ngs_docker:old_cooltools on the lopgin node once, to work around an IT bug.
 
 echo "========================================================
 Log of the pipeline run is written to 'mmhic_$DATE.log' and can be observed in this terminal.
@@ -25,14 +17,15 @@ It will contain a message when finished. This terminal can be closed.
 #CHANGE FOLLOWING 5 PARAMETERS
 ########################
 #Small example
-OUT="/groups/gerlich/labinfo/scratch/nf-out"
+OUT=$(pwd)"/nf-out"
+#Only use a number if you have multiple flowcells in the experiment, extend it like this: 046551, 046552, ... TODO: Fix this bahaviour.
 EXP_ID="04655"
 MACHINE="Iseq"
-SAMPLE="/groups/gerlich/labinfo/scratch/samplesheet_4655.csv"
+SAMPLE="/groups/gerlich/labinfo/scratch/samplesheet_4655_2.csv"
 INPUT="/groups/gerlich/labinfo/scratch/20190730_FS10000507_18_BPC29604-1714/"
 
 #Big example
-#OUT="/groups/gerlich/labinfo/scratch/nf-out"
+#OUT="./nf-out"
 #EXP_ID="04655"
 #MACHINE="Novaseq"
 #SAMPLE="/groups/gerlich/labinfo/scratch/samplesheet_4655_2.csv"
@@ -44,6 +37,8 @@ INPUT="/groups/gerlich/labinfo/scratch/20190730_FS10000507_18_BPC29604-1714/"
 EXP_ID_CLEAN=$((10#$EXP_ID))
 #Workdir on fast scratch
 WORKDIR=/scratch-cbe/users/${USER}/nf-workdir/${EXP_ID_CLEAN}-${MACHINE}/
+#Slow backup dir
+#WORKDIR=./nf-workdir/${EXP_ID_CLEAN}-${MACHINE}/
 BASEDIR=$(pwd)
 #Sends Email to default institute adresse
 NOTIFICATION_EMAIL=${USER}@imba.oeaw.ac.at
@@ -60,6 +55,9 @@ if [ $MACHINE == "Novaseq" ]
 then
   FLOWCELL="true"
 fi
+
+#Otherwise it saves the singularity image into the workdir
+export NXF_SINGULARITY_CACHEDIR=$HOME/.singularity
 
 #Redirects nohub into a log file, redirect the stderr to the same place we are redirecting the stdout and then starts tail to keep displaying the changing file.
 nohup nextflow ${BASEDIR}/main.nf -profile cbe \

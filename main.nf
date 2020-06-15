@@ -129,7 +129,7 @@ process bcl2fastq{
         !params.skipDemultiplexing
     script:
         """
-        singularity run --tmpdir ~/ docker://docker.io/gerlichlab/bcl2fastq bcl2fastq -R $params.inputfolder --sample-sheet $params.sampleheet -o .
+        bcl2fastq -R $params.inputfolder --sample-sheet $params.sampleheet -o .
         """
 }
 
@@ -374,12 +374,13 @@ process sort_pairs{
  */
 
 process dedup_pairs{
-    publishDir "$outputFolder/dedup_pairsam", mode: 'symlink'
+    publishDir "$outputFolder/dedup_pairsam", mode: 'symlink',
+        saveAs: {filename -> filename.endsWith(".stats") ? "stats/$filename" : "$filename"}
     input:
         file(pairsam) from CH_sorted_pairsam
     output:
         file "*.pairsam.gz" into CH_dedup_pairsam_main
-        file "*.stats" into dedup_stats
+        file "*.stats" into CH_dedup_stats
     script:
         barcode = pairsam.getName().tokenize('_').get(0)
         sample_ID = pairsam.getName().tokenize('_').get(1).tokenize('.').get(0)
@@ -592,6 +593,7 @@ process copy_to_output_novaseq{
         """
         mkdir -p $params.outdir/$outputFolder
         cp -rL ../../../$outputFolder/balanced_cooler $params.outdir/$outputFolder/.
+        cp -rL ../../../$outputFolder/dedup_pairsam/stats $params.outdir/$outputFolder/.
         cp -rL ../../../$outputFolder/cooler $params.outdir/$outputFolder/.
         cp -rL ../../../$outputFolder/fastqc $params.outdir/$outputFolder/.
         cp -rL ../../../$outputFolder/s4t_pairsam $params.outdir/$outputFolder/.
