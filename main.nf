@@ -29,35 +29,30 @@ Pipeline overview:
  ----------------------------------------------------------------------------------------
 */
 
-//TODO ADD HELA SNIP MApper
+//TODO Naming into Camel Case
+//TODO double check that parameters not reused
 
-//Mandatory prameters need to be set in run script
+//Mandatory parameters need to be set in run script
 params.inputfolder 
 params.sampleheet 
 params.machinetype 
 params.experimentID 
-params.doubleflowcell 
+params.doubleflowcell
+//How the hg19 reference genome fixed for Hela SNPs is explained in the paper.
+params.refDir
 outputFolder = "$params.experimentID-$params.machinetype"
 
+//Default parameters can be overwritten when calling the pipeline (i.e in the run_xxx.sh scripts):
 
 params.skipFastQC = false
 //TODO test if starting from fastq files work
 params.skipDemultiplexing = false
+//TODO should this be a parameter? Or fetched automatically?
 params.taskcpu = 38
-//TODO should this be a parameter
-//TODO Naming into Camel Case
-//TODO double check that paramter not resused
-
-//TODO provide a legal reference_genome
-//Reference Genome Location, default: hg19 fixed for Hela SNPs
-params.refDir="/groups/gerlich/members/MichaelMitter/Reference_genomes/Fasta/hg19_SNPs/"
-//This are the ones used:
-//params.chrSizes="/groups/gerlich/experiments/Experiments_004500/004596/Analysis/hg19.chrom.sizes"
 params.chrSizes="${baseDir}/bin/hg19.chrom.sizes"
-//TODO test what if empty
-params.outdir="/groups/gerlich/labinfo/scratch/nf-out"
+params.outdir="${baseDir}/nf-out"
 
-//Parmeters for s4t mutations
+//Parameters for s4t mutations
 params.min_map_q = 30
 params.min_right_muts = 2
 params.max_wrong_muts = 0
@@ -66,6 +61,7 @@ params.max_wrong_muts = 0
 //TODO find opt parameter make parameters variables
 //TODO test double cores /threads
 //TODO Tune parameters
+//TODO Scale down to max cores and 70% max memory
 bwa_threads=38
 memory_merge = "20G"
 nproc_merge = 19
@@ -91,7 +87,7 @@ def helpMessage() {
 
     Usage:
     The typical command for running the pipeline is using a run script,
-    modfied for your experiment, examples can be found on github:
+    modified for your experiment, examples can be found on github:
     
     bash run_cbe.sh
     
@@ -106,7 +102,7 @@ def helpMessage() {
  */
 
 // Pipeline version
-version = 0.2
+version = 1.0
 
 // Show help message
 params.help = false
@@ -119,7 +115,6 @@ if (params.help){
  * STEP 1 - Demiltiplexing with bcl2fastq
  */
 //TODO what if skipped demultiplexing
-//TODO use container nicer with nextflow
 //TODO sanity check file names
 process bcl2fastq{
     publishDir "$outputFolder/demultiplexed", mode: "symlink"
@@ -169,7 +164,6 @@ CH_demult_clean
     .into {CH_demult_iseq; CH_demult_novaseq}
 CH_demult_novaseq
     .into {CH_demult_novaseq_temp1; CH_demult_novaseq_temp2}
-
 
 //TODO replace with choice operator
 
@@ -285,19 +279,7 @@ CH_merged_R1.mix(CH_merged_R2)
 CH_iseq_tuple_for_align.mix(CH_novaseq_tuple_for_align)
     .set{CH_tuple_for_align}
 
-//Attention: groupTuple on ids creates: [id [file1, file2]], joining channels on id will produce: [id file1, file2]
-// CH_merged_R1.map { file ->
-//         def key = file.name.toString().tokenize('_').get(0)
-//         return tuple(key, file)
-//      }
-//     .set{ CH_tuple_R1}
-// CH_merged_R2.map { file ->
-//         def key = file.name.toString().tokenize('_').get(0)
-//         return tuple(key, file)
-//      }
-//     .set{ CH_tuple_R2}
-// CH_tuple_R1.join(CH_tuple_R2)
-//     .set{CH_novaseq_tuple_for_align}
+//Caution: groupTuple on ids creates: [id [file1, file2]], joining channels on id will produce: [id file1, file2]
 
 /*
  * STEP 4 - Alignement using bwa mem
@@ -314,12 +296,10 @@ process align_w_bwa{
         file "*.sam" into CH_bwa_results
     script:
         barcode = tuple[0].getName().tokenize('_').get(0)
-        //TODO more an better asserts
         assert pair_id == tuple[0].getName().tokenize('_').get(0)
         assert pair_id == tuple[1].getName().tokenize('_').get(0)
         sample_ID = tuple[0].getName().tokenize('_').get(1)
         file_name = "${barcode}_${sample_ID}"
-        //TODO Tune parameters
         """
         bwa mem -SP5M -t $bwa_threads ${params.refDir}hg19_SNPs.fa ${tuple} > ${file_name}_bwa.sam
         """
@@ -341,7 +321,6 @@ process parse_pairs{
         barcode = bwa_sam.getName().tokenize('_').get(0)
         sample_ID = bwa_sam.getName().tokenize('_').get(1)
         file_name = "${barcode}_${sample_ID}"
-        //TODO Tune parameters
         """
         pairtools parse -c $params.chrSizes --add-columns mapq -o ${file_name}.pairsam --nproc-in $nproc_pairsam --output-stats ${file_name}_stats.txt $bwa_sam
         """
@@ -362,7 +341,6 @@ process sort_pairs{
         barcode = pairsam.getName().tokenize('_').get(0)
         sample_ID = pairsam.getName().tokenize('_').get(1).tokenize('.').get(0)
         file_name = "${barcode}_${sample_ID}"
-        //TODO Tune parameters
         """
         pairtools sort --memory $memory_sort -o ${file_name}.sorted.pairsam.lz4 --nproc-out $nproc_out_sort  --nproc $nproc_sort $pairsam
         """
@@ -406,7 +384,7 @@ process detect_s4t{
         barcode = pairsam.getName().tokenize('_').get(0)
         sample_ID = pairsam.getName().tokenize('_').get(1).tokenize('.').get(0)
         file_name = "${barcode}_${sample_ID}"
-        //TODO Fast S4T 
+        //TODO make detect_s4t_mutations.py concurrent
         // $baseDir is the location of main.nf
         """
         python ${baseDir}/bin/detect_s4t_mutations.py --chunksize 5000000 -o ${file_name}.dedup.s4t.pairsam.gz $pairsam
@@ -418,8 +396,6 @@ process detect_s4t{
  */
 
 //TODO pair/pairsam .gz .lz4 which is best?
-//TODO collect stat files ?
-//TODO remove bash script copy the content into nextflow
 
 process filter_cis_trans{
     publishDir "$outputFolder/s4t_filtered_pairsam", mode: 'symlink'
@@ -442,10 +418,6 @@ process filter_cis_trans{
 /*
  * STEP 7.2 - Merge ref and comp .pairs file
  */
-
-//TODO: assert with contains
-//Channel.fromFilePairs("$outputFolder/s4t_filtered_pairsam/*cis_{comp,ref}.pairs.gz", flat: true).set{cis_pairs_file_ch}
-
 
 CH_cis_pairs
     .flatMap()
@@ -487,13 +459,12 @@ CH_trans_pairs
 process merge_trans_ref_comp{
     publishDir "$outputFolder/s4t_merged_pairsam", mode: 'symlink'
     input:
-    //    val(trans_pairs) from CH_trans_pairs.collect()
+//        val(trans_pairs) from CH_trans_pairs.collect()
         set pair_id2, file(set) from CH_trans_pairs_file
     output:
         file "*trans.pairs.gz" into CH_trans_merged_pairs
     script:
         barcode = set[0].getName().tokenize('_').get(0)
-        //TODO assert
         sample_ID = set[0].getName().tokenize('_').get(1).tokenize('.').get(0)
         sample_name = "${barcode}_${sample_ID}"
         """
@@ -561,7 +532,6 @@ process zoomify_and_balance{
 /*
  * STEP 10 - Copy output to final destination
 */
-//TODO make copy selective - use parameters
 //TODO outputfolder and outputidr - output destination
 process copy_to_output_iseq{
     //fake dependency for synchronization (barrier function)

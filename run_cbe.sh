@@ -13,6 +13,8 @@ It will contain a message when finished. This terminal can be closed.
 ########################
 #Small example
 OUT=$(pwd)"/nf-out"
+#Reference Genome Location, ours: hg19 fixed for Hela SNPs
+REFDIR="/groups/gerlich/members/MichaelMitter/Reference_genomes/Fasta/hg19_SNPs/"
 #Only use a number if you have multiple flowcells in the experiment, extend it like this: 046551, 046552, ... TODO: Fix this bahaviour.
 EXP_ID="04655"
 MACHINE="Iseq"
@@ -57,6 +59,7 @@ export NXF_SINGULARITY_CACHEDIR=$HOME/.singularity
 #Redirects nohub into a log file, redirect the stderr to the same place we are redirecting the stdout and then starts tail to keep displaying the changing file.
 nohup nextflow ${BASEDIR}/main.nf -profile cbe \
     --inputfolder $INPUT \
+    --refDir $REFDIR \
     --sampleheet $SAMPLE \
     --machinetype $MACHINE \
     --experimentID $EXP_ID_CLEAN \
@@ -68,7 +71,6 @@ nohup nextflow ${BASEDIR}/main.nf -profile cbe \
     -with-trace ${OUT}/${EXP_ID_CLEAN}-${MACHINE}/nxf_log/nf_trace.txt \
     -N $NOTIFICATION_EMAIL \
     -resume >> ${BASEDIR}/mmhic_$DATE.log 2>&1 &
-#TODO Test new logging
 
 
 tail -n 1000 -f ${BASEDIR}/mmhic_$DATE.log

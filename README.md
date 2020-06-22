@@ -71,19 +71,6 @@ To launch the pipeline you would run:
 bash run_cbe.sh
 ```
 
-
-
-
-run_local.sh 
-- modify set/change the parameters in run_cbe.sh
-    An example for the 5 mandatory parameters for the Novaseq and Iseq parameters are included
-- the default hardware configuration is cbe
-
-
-
-Launch mmhic depending on your usage scenario:
-
-
 ## Steps of the Pipline:
 TODO: UPDATE THIS TEXT
 1. Demultiplexing with bcl2fastq2 [17] 
