@@ -10,3 +10,4 @@ dag*
 junk/*
 *nf-workdir
 *.log
+.vscode

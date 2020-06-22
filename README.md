@@ -1,64 +1,62 @@
 # scshic_pipeline
-## scsHi-C Preprocessing Nextflow Pipline
+## scsHi-C Preprocessing Nextflow Pipeline
 IMBA - Gerlich Groupe <br>
 christoph.langer@imba.oeaw.ac.at <br>
 C.C.H. Langer, M. Mitter, A. Goloborodko
 
 ## A modular Hi-C mapping pipeline for reproducible data analysis.
 
-#If you can not use containers below you will find the minimum installation 
-#module load singularity/3.4.1 or whathever the newest version currently is (find via the command: module spider singularity)
-#module load nextflow/19.10.0 or any newer version
-#Attention: pull the containers gerlichlab/bcl2fastq:latest and gerlichlab/scshic_docker:latest on the lopgin node once, to work around an IT bug.
-
 The `scshic` pipeline aims to provide the following preprocessing functionality:
 
 - Align the sequences of Hi-C molecules to the reference genome
-- Parse .sam alignment and form files with Hi-C pairs
+- Parse .sam alignment and cre files with Hi-C pairs
 - Filter PCR duplicates
 - Annotate S4T mutation
 - Filter cis and trans contacts
 - Aggregate pairs into binned matrices of Hi-C interactions
 
-### Installation
+## Installation
 
-Requirements:
+### Requirements
 
 - java 8
 - [nextflow](https://www.nextflow.io/)
-- docker/singularity (should be able to run w/o root privileges, 
-[tutorial](https://www.digitalocean.com/community/tutorials/how-to-install-and-use-docker-on-ubuntu-16-04))
+- docker/singularity (should be able to run w/o root privileges, [tutorial](https://www.digitalocean.com/community/tutorials/how-to-install-and-use-docker-on-ubuntu-16-04))
+- an [optional container](https://hub.docker.com/repository/docker/gerlichlab/bcl2fastq) if you start with raw bcl files instead of demultiplexed fastq files
+- the [main container](https://hub.docker.com/repository/docker/gerlichlab/scshic_docker) including all of the software needed to run the rest of the pipeline  
+  
+Here an example how to prime our cluster for the pipeline:
+```
+module load singularity/3.4.1 # or whatever the newest version currently is (find via the command: module spider singularity)
+module load nextflow/19.10.0 # or any newer version
 
-As long as the repository is privat ad this to your scm file (or create it) @ ~/.nextflow/scm
-```
-providers {
-    github {
-        user = 'me'
-        password = 'my-secret-password'
-    }
-}
-```
-TODO: make static location of lib possible
-To setup a new project, execute the following line in the project folder:
+singularity pull docker://docker.io/gerlichlab/bcl2fastq:latest
+singularity pull docker://docker.io/gerlichlab/scshic_docker:release-1.0
+``` 
+
+### Pulling the pipeline
+Now pull the pipeline directly with nextflow:
 
 ```
-nextflow clone gerlichlab/mmhic-nf ./
+nextflow clone gerlichlab/scshic_pipeline ./
 ```
 
 or if you have git installed simply type:
 
 ```
-git clone git@github.com:cchlanger/mmhic_nf.git ./
+git clone git@github.com:gerlichlab/scshic_pipeline ./
 ```
 
-This will download the mmhic pipeline and the configuration files.
+This will download the scsHi-C pipeline and the configuration files.
+
+### Running the pipeline
 
 Then:
 
 - modify set/change the parameters in run_cbe.sh
     An example for the 5 mandatory parameters for the Novaseq and Iseq parameters are included
 - the default hardware configuration is cbe
-- in the future (TODO) use provided hardware configurations using `cbe-novaseq` or `cbe-iseq` profiles (or `cbe-slow` in case of fast memory problems on CBE), or provide your own using `custom` profile
+TODO: Local setting
 
 Launch mmhic depending on your usage scenario:
 
@@ -115,24 +113,13 @@ by the HiGlass visualization system [21]
 In a new project folder, execute:
 
 ```bash
-$ nextflow clone gerlichlab/mmhic-nf  ./
+$ nextflow clone gerlichlab/scshic_pipeline  ./
 $ bash run_cbe.sh 
 ```
 ### Citing
-TODO: Add Michael's paper
-Mitter, M., et al. (2019). mmHiC: ... doi: [xxx](xxx).
+This tool was developed for the following paper:
+[M. Mitter et al.](https://doi.org/10.1101/2020.03.10.978148)
 
-```bibtex
-@article{mmhic2019,
-    author = {Mitter, Michael et al.},
-    title = "{mmhic: ...}",
-    journal = {},
-    year = {2019},
-    month = {},
-    doi = {},
-    url = {},
-}
-```
 
 ### License
 
@@ -164,11 +151,11 @@ for compatibility with some public software tools such as picard MarkDuplicates.
 
 ### Containers
 All components have been packaged into containers:
-- bcl2fastq container can be found on [dockerhub](https://hub.docker.com/r/gerlichlab/bcl2fastq) and [git](https://github.com/cchlanger/bcl2fastq_container)
-- mmhic-nf container can be found on [dockerhub](https://hub.docker.com/r/gerlichlab/mmhic) and [git](https://github.com/cchlanger/mmHiC)
+- bcl2fastq container can be found on [dockerhub](https://hub.docker.com/r/gerlichlab/bcl2fastq) and [git](https://github.com/cchlanger/bcl2fastq_docker)
+- scshic container can be found on [dockerhub](https://hub.docker.com/r/gerlichlab/scshic_docker) and [git](https://github.com/gerlichlab/scshic_docker)
 
 ### Related Projects
-- Use Michael's [HiCTools](https://github.com/gerlichlab/NGS)!
+- Use Michael's [HiCTools](https://github.com/gerlichlab/ngs)!
 - Downstream analysis with [cooltools](https://github.com/mirnylab/cooltools)!
 - Visualize your cooler data with [HiGlass](http://higlass.io)!
 - A modular Hi-C mapping pipeline called [Distiller](https://github.com/mirnylab/distiller-nf)
