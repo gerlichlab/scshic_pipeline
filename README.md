@@ -50,21 +50,42 @@ git clone git@github.com:gerlichlab/scshic_pipeline ./
 This will download the scsHi-C pipeline and the configuration files.
 
 ### Running the pipeline
+To run locally simply modify the 5 mandatory parameters of the `run_local.sh` script, the execute it via:
 
-Then:
+**Attention: This is not recommend for big input data (e.g a full novaseq flow cell).**
+```
+bash run_local.sh
+```
 
-- modify set/change the parameters in run_cbe.sh
-    An example for the 5 mandatory parameters for the Novaseq and Iseq parameters are included
-- the default hardware configuration is cbe
-TODO: Local setting
+The 5 parameters you need to modify are:
 
-Launch mmhic depending on your usage scenario:
+TODO: ADD TEXT
 
+
+
+To run on the pipeline on a cluster you need to modify not only `run_cbe.sh` but also the `/conf/cbe.conf` to adapt to your cluster.
+We have provided our run script and config file for our SLURM cluster as an example.
+
+To launch the pipeline you would run: 
 ```
 bash run_cbe.sh
 ```
 
+
+
+
+run_local.sh 
+- modify set/change the parameters in run_cbe.sh
+    An example for the 5 mandatory parameters for the Novaseq and Iseq parameters are included
+- the default hardware configuration is cbe
+
+
+
+Launch mmhic depending on your usage scenario:
+
+
 ## Steps of the Pipline:
+TODO: UPDATE THIS TEXT
 1. Demultiplexing with bcl2fastq2 [17] 
 If the Sequencing facility does
 not provide you with demultiplexed.fastq or unalligned .sam/.bam files
@@ -114,7 +135,8 @@ In a new project folder, execute:
 
 ```bash
 $ nextflow clone gerlichlab/scshic_pipeline  ./
-$ bash run_cbe.sh 
+TODO: ADD PULLING of DATA FROM GEO
+$ bash run_local.sh 
 ```
 ### Citing
 This tool was developed for the following paper:
@@ -127,10 +149,9 @@ MIT License
 Copyright (c) 2019 Christoph C. H. Langer
 
 ### Components
-TODO add more Details! <br>
-mmhic-nf uses the following software components and tools:
-- [bcl2fastq2](https://support.illumina.com/sequencing/sequencing_software/bcl2fastq-conversion-software.html) 2.20.0 
-- [bwa mem](http://bio-bwa.sourceforge.net/) 0.7.17 as in other [Hi-C processing pipelines](https://data.4dnucleome.org/help/analysis-and-visualization/hi_c-processing-pipelin) we are using the -SP5M flag
+The scsHi-C pipeline uses the following software components and tools:
+- [bcl2fastq2](https://support.illumina.com/sequencing/sequencing_software/bcl2fastq-conversion-software.html) (2.20.0) 
+- [bwa mem](http://bio-bwa.sourceforge.net/) (0.7.17) as in other [Hi-C processing pipelines](https://data.4dnucleome.org/help/analysis-and-visualization/hi_c-processing-pipeline) we are using the -SP5M flag
     - -SP option is used to ensure the results are equivalent to that obtained by running bwa mem on each mate separately,
 while retaining the right formatting for paired-end reads. This option skips a step in bwa mem that forces 
 alignment of a poorly aligned read given an alignment of its mate with the assumption 
@@ -143,11 +164,10 @@ one of them is annotated as primary and soft-clipped, retaining the full-length 
 The other end is annotated as hard-clipped and marked as either 'supplementary' or 'secondary'. The -5 option forces the 5'end to be always annotated as primary.
     - -M option is used to annotate the secondary/supplementary clipped reads as secondary rather than supplementary, 
 for compatibility with some public software tools such as picard MarkDuplicates.
-- [fastqc](https://www.bioinformatics.babraham.ac.uk/projects/fastqc/) 0.11.8
-- [pairtools](https://github.com/mirnylab/pairtools) 0.3.0
-- a custom s4T detection python/cython scripts included in this repo
-- [cooler](https://github.com/mirnylab/cooler) 0.8.6
-
+- [fastqc](https://www.bioinformatics.babraham.ac.uk/projects/fastqc/) (0.11.8)
+- [pairtools](https://github.com/mirnylab/pairtools) (0.3.0)
+- a custom s4T detection python/cython script included in this repo
+- [cooler](https://github.com/mirnylab/cooler) (0.8.6)
 
 ### Containers
 All components have been packaged into containers:
@@ -155,7 +175,9 @@ All components have been packaged into containers:
 - scshic container can be found on [dockerhub](https://hub.docker.com/r/gerlichlab/scshic_docker) and [git](https://github.com/gerlichlab/scshic_docker)
 
 ### Related Projects
-- Use Michael's [HiCTools](https://github.com/gerlichlab/ngs)!
+- [Upstream analysis](https://github.com/gerlichlab/scshic_analysis) with the Jupyter notebooks that creates all Figures of the scsHi-C paper.
+- Use Michael's upstream [HiCTools](https://github.com/gerlichlab/ngs), they facilitate analysis of HiC data based on the cooler and cooltools interfaces.
+- A python [wrapper](https://github.com/cchlanger/cooler_ontad) for [OnTAD](https://github.com/anlin00007/OnTAD) to use with resulting mcoolers. 
 - Downstream analysis with [cooltools](https://github.com/mirnylab/cooltools)!
 - Visualize your cooler data with [HiGlass](http://higlass.io)!
 - A modular Hi-C mapping pipeline called [Distiller](https://github.com/mirnylab/distiller-nf)
