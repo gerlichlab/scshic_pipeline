@@ -24,7 +24,7 @@ jobs:
     # Run python default tests
     - name: Run black
       run: |
-      black --check .
+        black --check .
     - name: Run pylint
     # More or less ignore for now
       run: |
