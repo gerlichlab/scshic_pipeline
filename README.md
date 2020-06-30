@@ -5,6 +5,8 @@ christoph.langer@imba.oeaw.ac.at <br>
 C.C.H. Langer, M. Mitter, A. Goloborodko
 
 ## A modular Hi-C mapping pipeline for reproducible data analysis.
+[![nextflow](https://img.shields.io/badge/nextflow-%E2%89%A50.24.0-brightgreen.svg)]((http://nextflow.io))
+[![Build Status](https://travis-ci.org/gerlichlab/scshic_pipeline.svg?branch=master)](https://travis-ci.org/gerlichlab/scshic_pipeline)
 
 The `scshic` pipeline aims to provide the following preprocessing functionality:
 

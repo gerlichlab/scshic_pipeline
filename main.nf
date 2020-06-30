@@ -16,7 +16,7 @@ Pipeline overview:
  - 1:   Demultiplexing with bcl2fastq
  - 2:   FastQC (on each sample) for raw sequencing reads quality control
  - 3:   Merge the fq-files of two lanes
- - 4:   Alignement using bwa mem
+ - 4:   Alignment using bwa mem
  - 5.1: Parse: find ligation junctions in .sam, make .pairsam
  - 5.2: Sort the .pairsam files
  - 5.3: Dedup: Find and remove PCR/optical duplicates.
@@ -112,7 +112,7 @@ if (params.help){
 }
 
 /*
- * STEP 1 - Demiltiplexing with bcl2fastq
+ * STEP 1 - Demultiplexing with bcl2fastq
  */
 //TODO what if skipped demultiplexing
 //TODO sanity check file names
@@ -287,7 +287,6 @@ CH_iseq_tuple_for_align.mix(CH_novaseq_tuple_for_align)
 
 // TODO sanity check fastq file names - parse till end
 
-
 process align_w_bwa{
     publishDir "$outputFolder/bwa_results", mode: 'symlink'
     input:
@@ -395,8 +394,6 @@ process detect_s4t{
  * STEP 7.1 - Filter cis and trans contacts
  */
 
-//TODO pair/pairsam .gz .lz4 which is best?
-
 process filter_cis_trans{
     publishDir "$outputFolder/s4t_filtered_pairsam", mode: 'symlink'
     input:
@@ -431,7 +428,6 @@ CH_cis_pairs
 process merge_cis_ref_comp{
     publishDir "$outputFolder/s4t_merged_pairsam", mode: 'symlink'
     input:
-        //val(cis_pairs) from CH_cis_pairs.collect()
         set pair_id, file(set) from CH_cis_pairs_file
     output:
         file "*cis.pairs.gz" into CH_cis_merged_pairs
@@ -442,10 +438,8 @@ process merge_cis_ref_comp{
         """
         pairtools merge --memory ${memory_merge} --nproc ${nproc_merge} -o ${sample_name}.cis.pairs.gz ${set}
         """
-        //TODO: assert ${set_comp} ${set_ref}
 }
-//TODO assert:
-//Channel.fromFilePairs("$outputFolder/s4t_filtered_pairsam/*trans_{comp_ref,ref_comp}.pairs.gz", flat: true).set{trans_pairs_file_ch}
+
 CH_trans_pairs
     .flatMap()
     .map { file ->
@@ -459,7 +453,6 @@ CH_trans_pairs
 process merge_trans_ref_comp{
     publishDir "$outputFolder/s4t_merged_pairsam", mode: 'symlink'
     input:
-//        val(trans_pairs) from CH_trans_pairs.collect()
         set pair_id2, file(set) from CH_trans_pairs_file
     output:
         file "*trans.pairs.gz" into CH_trans_merged_pairs
