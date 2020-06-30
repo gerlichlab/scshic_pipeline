@@ -6,8 +6,7 @@ C.C.H. Langer, M. Mitter, A. Goloborodko
 
 ## A modular Hi-C mapping pipeline for reproducible data analysis.
 [![nextflow](https://img.shields.io/badge/nextflow-%E2%89%A50.24.0-brightgreen.svg)]((http://nextflow.io))
-[![Build Status](https://travis-ci.org/gerlichlab/scshic_pipeline.svg?branch=master)](https://travis-ci.org/gerlichlab/scshic_pipeline)
-
+![.github/workflows/buildtest.yml](https://github.com/gerlichlab/scshic_pipeline/workflows/.github/workflows/buildtest.yml/badge.svg)
 The `scshic` pipeline aims to provide the following preprocessing functionality:
 
 - Align the sequences of Hi-C molecules to the reference genome
