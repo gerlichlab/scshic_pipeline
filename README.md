@@ -51,7 +51,7 @@ git clone git@github.com:gerlichlab/scshic_pipeline ./
 This will download the scsHi-C pipeline and the configuration files into the current working directory.
 
 ### Running the pipeline
-**Attention: Running the pipeline is only recommended on a scientific cluster. For a NovaSeq flowcell, the working directory of nextflow will be >15TB large. **
+**Attention: Running the pipeline is only recommended on a scientific cluster. For a NovaSeq flowcell, the working directory of nextflow will be >15TB large.**
 
 Here is the example set up for a [SLURM](https://slurm.schedmd.com/documentation.html) batch system.
 
