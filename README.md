@@ -10,7 +10,7 @@ C.C.H. Langer, M. Mitter, A. Goloborodko
 The `scshic` pipeline aims to provide the following preprocessing functionality:
 
 - Align the sequences of Hi-C molecules to the reference genome
-- Parse .sam alignment and cre files with Hi-C pairs
+- Parse .sam alignment and create files with Hi-C pairs
 - Filter PCR duplicates
 - Annotate S4T mutation
 - Filter cis and trans contacts
@@ -26,7 +26,7 @@ The `scshic` pipeline aims to provide the following preprocessing functionality:
 - an [optional container](https://hub.docker.com/repository/docker/gerlichlab/bcl2fastq) if you start with raw bcl files instead of demultiplexed fastq files
 - the [main container](https://hub.docker.com/repository/docker/gerlichlab/scshic_docker) including all of the software needed to run the rest of the pipeline  
   
-Here an example how to prime our cluster for the pipeline:
+Here an example of how to prime our cluster for the pipeline:
 ```
 module load singularity/3.4.1 # or whatever the newest version currently is (find via the command: module spider singularity)
 module load nextflow/19.10.0 # or any newer version
@@ -42,93 +42,97 @@ Now pull the pipeline directly with nextflow:
 nextflow clone gerlichlab/scshic_pipeline ./
 ```
 
-or if you have git installed simply type:
+or if you have git installed, simply type:
 
 ```
 git clone git@github.com:gerlichlab/scshic_pipeline ./
 ```
 
-This will download the scsHi-C pipeline and the configuration files.
+This will download the scsHi-C pipeline and the configuration files into the current working directory.
 
 ### Running the pipeline
-To run locally simply modify the 5 mandatory parameters of the `run_local.sh` script, the execute it via:
+**Attention: Running the pipeline is only recommended on a scientific cluster. For a NovaSeq flowcell, the working directory of nextflow will be >15TB large. **
 
-**Attention: This is not recommend for big input data (e.g a full novaseq flow cell).**
-```
-bash run_local.sh
-```
+Here is the example set up for a [SLURM](https://slurm.schedmd.com/documentation.html) batch system.
 
-The 5 parameters you need to modify are:
-
-TODO: ADD TEXT
-
-
-
-To run on the pipeline on a cluster you need to modify not only `run_cbe.sh` but also the `/conf/cbe.conf` to adapt to your cluster.
+To run on the pipeline on a cluster, you need to modify not only `run_cbe.sh` but also the `/conf/cbe.conf` to adapt it to your cluster.
 We have provided our run script and config file for our SLURM cluster as an example.
 
-To launch the pipeline you would run: 
+To launch the pipeline, you would run: 
+
 ```
 bash run_cbe.sh
 ```
+### Sample sheet for demultiplexing
+For the demultiplexing with [bcl2fastq2](https://emea.support.illumina.com/downloads/bcl2fastq-conversion-software-v2-20.html) you need to provide it with a [sample sheet](https://emea.support.illumina.com/downloads/sample-sheet-v2-template.html)/
+A minimal example is provided with `.\examples\Samplesheet.csv`; in it, the samples are named (Sample_ID) like the barcodes, and the sheet is for a NavaSeq flowcell with two lanes. 
 
-## Steps of the Pipline:
-TODO: UPDATE THIS TEXT
-1. Demultiplexing with bcl2fastq2 [17] 
+**Attention: Only use alphanumeric characters for the Sample_ID.**
+
+If you misformat the file, you will only get two files starting Undetermined*, and the pipeline will stop.
+
+### Skipping demultiplexing:
+
+If you provide the pipeline with a folder of demultiplexed .fastq files,
+add the following parameter to the nextflow command in `run_cbe.sh`
+
+**Attention: Make sure your filenames of your .fastq files are alphanumeric only**
+
+```
+--skipDemultiplexing "true"
+```
+
+
+
+
+## Detailed steps of the Pipeline:
+
+1. Demultiplexing with [bcl2fastq2](https://emea.support.illumina.com/downloads/bcl2fastq-conversion-software-v2-20.html) 
 If the Sequencing facility does
-not provide you with demultiplexed.fastq or unalligned .sam/.bam files
-this step is necessary to distinguish between the individual samples (often
+not provide you with demultiplexed.fastq this step is necessary to distinguish between the individual samples (often
 different experimental conditions) and pooled samples.
-2. FastQC (on each sample) for raw sequencing reads quality con-
-trol: FastQC is a tool that provides series of quality control checks on
-23raw sequence data. It provides a report including visualizations, to give a
-quick impression if the data has any heavier problems one should be aware
-of or consider,before doing any further analysis [39].
-3. Merge the fq-files of two lanes: Since a full Illumina Novaseq run
-includes two flowcells, a simple operation that concatenates two gziped
+2. [FastQC](https://www.bioinformatics.babraham.ac.uk/projects/fastqc/) (on each sample) for raw sequencing reads quality control: FastQC is a tool that provides series of quality control checks on
+raw sequence data. It provides a report including visualizations to give a
+quick impression if the data has any heavier problems one should be aware of or consider before doing any further analysis.
+3. Merge the fq-files of two lanes: Since a full Illumina NovaSeq run
+includes two flowcells, a simple operation that concatenates two gzipped
 fastq files performed with the unix ’cat’ command.
-4. Alignment using bwa mem[27][25]: The reads where aligned to the
-hg19 human genome with a correction for aberrant genome situation (he
-SNPs and chromosomal translocations) of our HeLa cervical cancer cell
-line used in our experiments. Unfortunately the bwa mem algorithm has
-not yet been published.
+4. Alignment using [bwa-mem](https://doi.org/10.1109/IPDPS.2019.00041): The reads were aligned to a hg19 human genome with a correction for aberrant genome situations (SNPs and chromosomal translocations) of our HeLa cervical cancer cell lines used in our experiments. 
 5. Parse: find ligation junctions in .sam, make .pairsam
 6. Sort: Sorting the .pairsam files
-7. Dedup: Find and remove PCR/optical duplicates. We used pairtools [4]
+7. Dedup: Find and remove PCR/optical duplicates. We used [pairtools](https://github.com/open2c/pairtools)
 to detect ligation junctions of HiC pairs in aligned paired-end sequences
-of Hi-C DNA molecules (done by parse), These .pairs files were sorted for
+of Hi-C DNA molecules (done by parse). These .pairs files were sorted for
 downstream analyses and PCR/optical duplicates were detected, tagged
 and removed.
 8. Annotate S4T mutations: We labeled a subset of DNA using synthetic
-nucleotides, in our case the newly synthesized sister chromatid and de-
-veloped a novel method coined sister-chromatid sensitive Hi-C (scsHi-C)
-that allows the elucidation of sister chromatid structure at unprecedented
-resolution. During this step we were looking for the characteristic T-to-C
-and A-to-G mutations and decided afterwards, according to heuristic, if
-the mutations is due to the labeling.
+nucleotides, in our case, the newly synthesized sister chromatid and developed a novel method coined sister-chromatid sensitive Hi-C (scsHi-C) that allows the elucidation of sister chromatid structure at unprecedented resolution. During this step we were looking for the characteristic T-to-C and A-to-G mutations and decided afterward, according to heuristic, if the mutations are due to the labeling.
 9. Filter cis and trans contacts: Filter for contacts within or between
 sister chromatids.
 10. Merge ref and comp .pairs file: Merge reference and complementary
-strand reads. Using pairtools.
+strand reads using pairtools.
 11. Generate cools: Create a cooler (i.e. .cool files) from genomic pairs
-and bins, which is an efficient storage format for high resolution genomic
-interaction matrices using cooler [1].
-12. Zoomify and balance: generates a multi-resolution cooler file by coarsen-
-ing and out-of-core matrix balancing. It is the final output and is loaded
-by the HiGlass visualization system [21]
+and bins, which is an efficient storage format for high-resolution genomic
+interaction matrices using [cooler](https://github.com/open2c/cooler).
+12. Zoomify and balance: generates a multi-resolution cooler file by coarsening and out-of-core matrix balancing. It is the final output and is loaded by the [HiGlass](https://docs.higlass.io/index.html) visualization system.
+13. scsHi-C specific QC:
+    - Fraction of labelled contacts for all samples.
+    - Fraction of unique reads.
+    - Trans-chromosomal/Cis-chromosomal contacts. 
+    - Size-distribution of contacts.
 
-### Test example
-
-In a new project folder, execute:
-
-```bash
-$ nextflow clone gerlichlab/scshic_pipeline  ./
-TODO: ADD PULLING of DATA FROM GEO
-$ bash run_local.sh 
-```
 ### Citing
 This tool was developed for the following paper:
-[M. Mitter et al.](https://doi.org/10.1101/2020.03.10.978148)
+[M. Mitter et al.](https://doi.org/10.1038/s41586-020-2744-4)
+
+The protocol paper: M. Mitter, Z. Takacs. et al. (submitted)
+
+### Versions
+#### Versions 1.1.0
+Is used for the papers.
+#### Version 1.2.0
+Is built to automatically start from a [FileMaker17](https://fmhelp.filemaker.com/help/17/fmp/en/) database.
+The location of all output files are entered to the database after completion.
 
 
 ### License
@@ -163,9 +167,8 @@ All components have been packaged into containers:
 - scshic container can be found on [dockerhub](https://hub.docker.com/r/gerlichlab/scshic_docker) and [git](https://github.com/gerlichlab/scshic_docker)
 
 ### Related Projects
-- [Upstream analysis](https://github.com/gerlichlab/scshic_analysis) with the Jupyter notebooks that creates all Figures of the scsHi-C paper.
-- Use Michael's upstream [HiCTools](https://github.com/gerlichlab/ngs), they facilitate analysis of HiC data based on the cooler and cooltools interfaces.
+- [Upstream analysis](https://github.com/gerlichlab/scshic_analysis) with the Jupyter notebooks that create all Figures of the scsHi-C paper.
+- Use Michael's upstream [HiCTools](https://github.com/gerlichlab/ngs); they facilitate analysis of HiC data based on the cooler and cooltools interfaces.
 - A python [wrapper](https://github.com/cchlanger/cooler_ontad) for [OnTAD](https://github.com/anlin00007/OnTAD) to use with resulting mcoolers. 
 - Downstream analysis with [cooltools](https://github.com/mirnylab/cooltools)!
 - Visualize your cooler data with [HiGlass](http://higlass.io)!
-- A modular Hi-C mapping pipeline called [Distiller](https://github.com/mirnylab/distiller-nf)

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-DATE=$(date +"%Y%m%d%H%M%S")
+DATE=$(date +"%Y-%m-%d-%H:%M:%S")
 
 echo "========================================================
 Log of the pipeline run is written to 'mmhic_$DATE.log' and can be observed in this terminal.
@@ -9,40 +9,45 @@ It will contain a message when finished. This terminal can be closed.
 
 
 ########################
-#CHANGE FOLLOWING 5 PARAMETERS
+#CHANGE FOLLOWING 6 PARAMETERS
 ########################
-#Small example
+#Output location:
 OUT=$(pwd)"/nf-out"
-#Reference Genome Location, ours: hg19 fixed for Hela SNPs
+#Reference Genome Location, ours: hg19 fixed for Hela SNPs:
 REFDIR="/groups/gerlich/members/MichaelMitter/Reference_genomes/Fasta/hg19_SNPs/"
-#Only use a number if you have multiple flowcells in the experiment, extend it like this: 046551, 046552, ... TODO: Fix this bahaviour.
+
+#Iseq example
+#Only use a number if you have multiple flowcells in the experiment, extend it like this: 046551, 046552 ...
 EXP_ID="04655"
 MACHINE="Iseq"
 SAMPLE="/groups/gerlich/labinfo/scratch/samplesheet_4655_2.csv"
+#Provided as BCL folder:
 INPUT="/groups/gerlich/labinfo/scratch/20190730_FS10000507_18_BPC29604-1714/"
 
-#Big example
-#OUT="./nf-out"
+#NovaSeq example
 #EXP_ID="04655"
 #MACHINE="Novaseq"
 #SAMPLE="/groups/gerlich/labinfo/scratch/samplesheet_4655_2.csv"
 #INPUT="/groups/gerlich/labinfo/scratch/190802_A00700_0046_AHF2CFDRXX/"
 
 ########################
-#ARE READY TO USE AT THE IMBA
-#Needs to be done for consistancy because nextflow would eat first zero anyway
+#READY TO USE AT THE IMBA - need to be modified at your institute
+########################
+
+#Needs to be done for consistency because nextflow would eat the first zero anyway
 EXP_ID_CLEAN=$((10#$EXP_ID))
-#Workdir on fast scratch
+#Workdir on fast scratch - point this to your fastest filesystem
 WORKDIR=/scratch-cbe/users/${USER}/nf-workdir/${EXP_ID_CLEAN}-${MACHINE}/
-#Slow backup dir
+#Uncomment  the following line to use the current working directory for the temporary files
 #WORKDIR=./nf-workdir/${EXP_ID_CLEAN}-${MACHINE}/
 BASEDIR=$(pwd)
-#Sends Email to default institute adresse
+#Sends Email to default institute address
 NOTIFICATION_EMAIL=${USER}@imba.oeaw.ac.at
 
 mkdir -p $WORKDIR
 cd $WORKDIR
 
+#Used for the parameter --doubleflowcell, since NovaSeq machines have two lanes in a flowcell. 
 if [ $MACHINE == "Iseq" ]
 then
   FLOWCELL="false"
@@ -53,7 +58,7 @@ then
   FLOWCELL="true"
 fi
 
-#Otherwise it saves the singularity image into the workdir
+#Otherwise, it saves the singularity image into the current working directory
 export NXF_SINGULARITY_CACHEDIR=$HOME/.singularity
 
 #Redirects nohub into a log file, redirect the stderr to the same place we are redirecting the stdout and then starts tail to keep displaying the changing file.

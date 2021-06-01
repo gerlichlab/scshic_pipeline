@@ -1,2 +1,1 @@
-#TODO: Create runscript that runs out of the box.
-echo "this runs!"
+echo "You really do not want to run this locally!"
