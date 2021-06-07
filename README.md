@@ -5,7 +5,7 @@ christoph.langer@imba.oeaw.ac.at <br>
 C.C.H. Langer, M. Mitter, A. Goloborodko
 
 ## A modular Hi-C mapping pipeline for reproducible data analysis.
-[![nextflow](https://img.shields.io/badge/nextflow-%E2%89%A50.24.0-brightgreen.svg)]((http://nextflow.io))
+[![nextflow](https://img.shields.io/badge/nextflow-%E2%89%A520.01.0-brightgreen.svg)]((http://nextflow.io))
 ![build](https://github.com/gerlichlab/scshic_pipeline/workflows/CI/badge.svg)
 The `scshic` pipeline aims to provide the following preprocessing functionality:
 
@@ -28,11 +28,11 @@ The `scshic` pipeline aims to provide the following preprocessing functionality:
   
 Here an example of how to prime our cluster for the pipeline:
 ```
-module load singularity/3.4.1 # or whatever the newest version currently is (find via the command: module spider singularity)
-module load nextflow/19.10.0 # or any newer version
+module load singularity/3.7.3 # or whatever the newest version currently is (find via the command: module spider singularity)
+module load nextflow/20.01.0 # or any newer version
 
 singularity pull docker://docker.io/gerlichlab/bcl2fastq:latest
-singularity pull docker://docker.io/gerlichlab/scshic_docker:release-1.0
+singularity pull docker://docker.io/gerlichlab/scshic_docker:release-1.5
 ``` 
 
 ### Pulling the pipeline
