@@ -7,34 +7,60 @@ import click
 
 # define functions
 
+
 def getUnique(df):
     """Calcualtes percentage of unique reads"""
-    return df.loc[df[0] == "total_nodups", 1].values[0]/df.loc[df[0] == "total_mapped", 1].values[0]
+    return (
+        df.loc[df[0] == "total_nodups", 1].values[0]
+        / df.loc[df[0] == "total_mapped", 1].values[0]
+    )
+
 
 def getCisTrans(df):
     """Calcualtes percentage of cis and trans chromosomal reads"""
-    cis = df.loc[df[0] == "cis", 1].values[0]/df.loc[df[0] == "total_nodups", 1].values[0]
-    trans = df.loc[df[0] == "trans", 1].values[0]/df.loc[df[0] == "total_nodups", 1].values[0]
+    cis = (
+        df.loc[df[0] == "cis", 1].values[0]
+        / df.loc[df[0] == "total_nodups", 1].values[0]
+    )
+    trans = (
+        df.loc[df[0] == "trans", 1].values[0]
+        / df.loc[df[0] == "total_nodups", 1].values[0]
+    )
     return {"cis": cis, "trans": trans}
+
 
 def getCisDist(df):
     """Calcualtes percentage of reads at certain distance"""
     result = {}
-    for dist in ["cis_1kb+", "cis_2kb+", "cis_4kb+", "cis_10kb+", "cis_20kb+", "cis_40kb+"]:
-        result[dist] = df.loc[df[0] == dist, 1].values[0]/df.loc[df[0] == "pair_types/UU", 1].values[0]
+    for dist in [
+        "cis_1kb+",
+        "cis_2kb+",
+        "cis_4kb+",
+        "cis_10kb+",
+        "cis_20kb+",
+        "cis_40kb+",
+    ]:
+        result[dist] = (
+            df.loc[df[0] == dist, 1].values[0]
+            / df.loc[df[0] == "pair_types/UU", 1].values[0]
+        )
     return result
 
+
 @click.command()
-@click.option('--inputdir', help='Directory with the stats files.')
-@click.option('--resultsdir', help='Directory for the Results')
-def qc1(inputdir,resultsdir):
+@click.option("--inputdir", help="Directory with the stats files.")
+@click.option("--resultsdir", help="Directory for the Results")
+def qc1(inputdir, resultsdir):
     # set wd
     os.chdir(inputdir)
 
     # load in stats
 
-    stats = {i.split("_")[0]: pd.read_csv(i, sep="\t", header=None) for i in os.listdir() if 
-            "stats" in i}
+    stats = {
+        i.split("_")[0]: pd.read_csv(i, sep="\t", header=None)
+        for i in os.listdir()
+        if "stats" in i
+    }
 
     # get unique reads
 
@@ -52,9 +78,7 @@ def qc1(inputdir,resultsdir):
     locs, labels = plt.xticks()
     plt.xticks(locs, labels, rotation=90)
     sbn.despine()
-    f.savefig(os.path.join(resultsdir, "Unqiue_Reads.png"),
-            bbox_inches="tight")
-
+    f.savefig(os.path.join(resultsdir, "Unqiue_Reads.png"), bbox_inches="tight")
 
     # get cisTrans
 
@@ -77,9 +101,8 @@ def qc1(inputdir,resultsdir):
     box = ax.get_position()
     ax.set_position([box.x0, box.y0, box.width * 0.8, box.height])
     # Put a legend to the right of the current axis
-    ax.legend(loc='center left', bbox_to_anchor=(1, 0.5))
-    f.savefig(os.path.join(resultsdir, "CisTrans_Dist.png"),
-            bbox_inches="tight")
+    ax.legend(loc="center left", bbox_to_anchor=(1, 0.5))
+    f.savefig(os.path.join(resultsdir, "CisTrans_Dist.png"), bbox_inches="tight")
 
     # get cisDistance
 
@@ -90,8 +113,20 @@ def qc1(inputdir,resultsdir):
     # plot cisDistance
 
     f, ax = plt.subplots()
-    sbn.barplot(x="variable", y="value", hue="index", data=cisDistMolt,
-                hue_order=["cis_1kb+", "cis_2kb+", "cis_4kb+", "cis_10kb+", "cis_20kb+", "cis_40kb+"])
+    sbn.barplot(
+        x="variable",
+        y="value",
+        hue="index",
+        data=cisDistMolt,
+        hue_order=[
+            "cis_1kb+",
+            "cis_2kb+",
+            "cis_4kb+",
+            "cis_10kb+",
+            "cis_20kb+",
+            "cis_40kb+",
+        ],
+    )
     ax.set_xlabel("Barcodes")
     ax.set_ylabel("Fraction Reads")
     ax.set_title("Cis Distance distribution")
@@ -103,9 +138,9 @@ def qc1(inputdir,resultsdir):
     box = ax.get_position()
     ax.set_position([box.x0, box.y0, box.width * 0.8, box.height])
     # Put a legend to the right of the current axis
-    ax.legend(loc='center left', bbox_to_anchor=(1, 0.5))
-    f.savefig(os.path.join(resultsdir, "CisTrans_Distance.png"),
-            bbox_inches="tight")
+    ax.legend(loc="center left", bbox_to_anchor=(1, 0.5))
+    f.savefig(os.path.join(resultsdir, "CisTrans_Distance.png"), bbox_inches="tight")
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     qc1()
