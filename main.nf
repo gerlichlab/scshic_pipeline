@@ -30,7 +30,6 @@ Pipeline overview:
 */
 
 //TODO Naming into Camel Case
-//TODO double check that parameters not reused
 
 //Mandatory parameters need to be set in run script
 params.inputfolder 
@@ -45,7 +44,6 @@ outputFolder = "$params.experimentID-$params.machinetype"
 //Default parameters can be overwritten when calling the pipeline (i.e in the run_xxx.sh scripts):
 
 params.skipFastQC = false
-//TODO test if starting from fastq files work
 params.skipDemultiplexing = false
 //TODO should this be a parameter? Or fetched automatically?
 params.taskcpu = 38
@@ -58,10 +56,6 @@ params.min_right_muts = 2
 params.max_wrong_muts = 0
 
 //Performance Parameters
-//TODO find opt parameter make parameters variables
-//TODO test double cores /threads
-//TODO Tune parameters
-//TODO Scale down to max cores and 70% max memory
 bwa_threads=38
 memory_merge = "20G"
 nproc_merge = 19
@@ -102,7 +96,7 @@ def helpMessage() {
  */
 
 // Pipeline version
-version = 1.0
+version = 1.1
 
 // Show help message
 params.help = false
@@ -114,8 +108,7 @@ if (params.help){
 /*
  * STEP 1 - Demultiplexing with bcl2fastq
  */
-//TODO what if skipped demultiplexing
-//TODO sanity check file names
+
 process bcl2fastq{
     publishDir "$outputFolder/demultiplexed", mode: "symlink"
     output:
@@ -384,7 +377,7 @@ process detect_s4t{
         sample_ID = pairsam.getName().tokenize('_').get(1).tokenize('.').get(0)
         file_name = "${barcode}_${sample_ID}"
         //TODO make detect_s4t_mutations.py concurrent
-        // $baseDir is the location of main.nf
+        //Reminder: $baseDir is the location of main.nf
         """
         python ${baseDir}/bin/detect_s4t_mutations.py --chunksize 5000000 -o ${file_name}.dedup.s4t.pairsam.gz $pairsam
         """
@@ -409,8 +402,6 @@ process filter_cis_trans{
         bash ${baseDir}/bin/filter_single_experiment.sh $sample_name . $s4t_pairs $params.min_map_q $params.min_right_muts $params.max_wrong_muts
         """
 }
-
-//TODO What was ref and comp again?
 
 /*
  * STEP 7.2 - Merge ref and comp .pairs file
@@ -465,7 +456,6 @@ process merge_trans_ref_comp{
         """
 }
 
-
 /*
  * STEP 8 - Generate cools
  */
@@ -502,7 +492,6 @@ process generate_cools{
 
 CH_cools.into { CH_cools_for_balancing; CH_cools_iseq }
 
-
 /*
  * STEP 9 - Zoomify and balance: generate a multi-resolution cooler file by coarsening and out-of-core matrix balancing
  */
@@ -521,11 +510,10 @@ process zoomify_and_balance{
         """
 }
 
-
 /*
  * STEP 10 - Copy output to final destination
 */
-//TODO outputfolder and outputidr - output destination
+
 process copy_to_output_iseq{
     //fake dependency for synchronization (barrier function)
     input:
@@ -537,10 +525,11 @@ process copy_to_output_iseq{
         //Copy to output and dereference symlinks
         """
         mkdir -p $params.outdir/$outputFolder
-        cp -rL ../../../$outputFolder/cooler $params.outdir/$outputFolder/.
-        cp -rL ../../../$outputFolder/fastqc $params.outdir/$outputFolder/.
-        cp -rL ../../../$outputFolder/s4t_pairsam $params.outdir/$outputFolder/.
-        cp -rL ../../../$outputFolder/s4t_merged_pairsam $params.outdir/$outputFolder/.
+        cp -rL ../../../$outputFolder/cooler $params.outdir/$outputFolder/unbalanced_cooler
+        cp -rL ../../../$outputFolder/dedup_pairsam/stats $params.outdir/$outputFolder/qc_and_stats/stats
+        cp -rL ../../../$outputFolder/fastqc $params.outdir/$outputFolder/qc_and_stats/fastqc
+        cp -rL ../../../$outputFolder/s4t_pairsam $params.outdir/$outputFolder/all_pairs
+        cp -rL ../../../$outputFolder/s4t_merged_pairsam $params.outdir/$outputFolder/cis_trans_pairs
         """
 }
 
@@ -555,11 +544,13 @@ process copy_to_output_novaseq{
         //Copy to output and dereference symlinks
         """
         mkdir -p $params.outdir/$outputFolder
-        cp -rL ../../../$outputFolder/balanced_cooler $params.outdir/$outputFolder/.
-        cp -rL ../../../$outputFolder/dedup_pairsam/stats $params.outdir/$outputFolder/.
-        cp -rL ../../../$outputFolder/cooler $params.outdir/$outputFolder/.
-        cp -rL ../../../$outputFolder/fastqc $params.outdir/$outputFolder/.
-        cp -rL ../../../$outputFolder/s4t_pairsam $params.outdir/$outputFolder/.
-        cp -rL ../../../$outputFolder/s4t_merged_pairsam $params.outdir/$outputFolder/.
+        cp -rL ../../../$outputFolder/balanced_cooler $params.outdir/$outputFolder/mcooler
+        rm $params.outdir/$outputFolder/mcooler/*cis.1000.mcooler
+        rm $params.outdir/$outputFolder/mcooler/*trans.1000.mcooler
+        cp -rL ../../../$outputFolder/dedup_pairsam/stats $params.outdir/$outputFolder/qc_and_stats/stats
+        cp -rL ../../../$outputFolder/cooler $params.outdir/$outputFolder/unbalanced_cooler
+        cp -rL ../../../$outputFolder/fastqc $params.outdir/$outputFolder/qc_and_stats/fastqc
+        cp -rL ../../../$outputFolder/s4t_pairsam $params.outdir/$outputFolder/all_pairs
+        cp -rL ../../../$outputFolder/s4t_merged_pairsam $params.outdir/$outputFolder/cis_trans_pairs
         """
 }

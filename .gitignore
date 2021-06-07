@@ -11,3 +11,5 @@ junk/*
 *nf-workdir
 *.log
 .vscode
+*.sif
+nf-out/*

@@ -3,9 +3,9 @@
 DATE=$(date +"%Y-%m-%d-%H:%M:%S")
 
 echo "========================================================
-Log of the pipeline run is written to 'mmhic_$DATE.log' and can be observed in this terminal.
+Log of the pipeline run is written to 'scshic_$DATE.log' and can be observed in this terminal.
 It will contain a message when finished. This terminal can be closed.
-========================================================" > mmhic_$DATE.log
+========================================================" > scshic_$DATE.log
 
 
 ########################
@@ -62,7 +62,7 @@ fi
 export NXF_SINGULARITY_CACHEDIR=$HOME/.singularity
 
 #Redirects nohub into a log file, redirect the stderr to the same place we are redirecting the stdout and then starts tail to keep displaying the changing file.
-nohup nextflow ${BASEDIR}/main.nf -profile cbe \
+nohup nextflow ${BASEDIR}/main.nf -profile cluster \
     --inputfolder $INPUT \
     --refDir $REFDIR \
     --sampleheet $SAMPLE \
@@ -75,7 +75,7 @@ nohup nextflow ${BASEDIR}/main.nf -profile cbe \
     -with-dag ${OUT}/${EXP_ID_CLEAN}-${MACHINE}/nxf_log/nf_DAG.svg \
     -with-trace ${OUT}/${EXP_ID_CLEAN}-${MACHINE}/nxf_log/nf_trace.txt \
     -N $NOTIFICATION_EMAIL \
-    -resume >> ${BASEDIR}/mmhic_$DATE.log 2>&1 &
+    -resume >> ${BASEDIR}/scshic_$DATE.log 2>&1 &
 
 
-tail -n 1000 -f ${BASEDIR}/mmhic_$DATE.log
+tail -n 1000 -f ${BASEDIR}/scshic_$DATE.log
