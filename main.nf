@@ -25,7 +25,7 @@ Pipeline overview:
  - 7.2: Merge ref and comp .pairs file
  - 8:   Generate cools
  - 9:   Zoomify and balance: generate a multi-resolution cooler file by coarsening and out-of-core matrix balancing
- -10:   Copy output to final destination
+ - 10:  Run QC scripts and copy all output to final destination
  ----------------------------------------------------------------------------------------
 */
 
@@ -511,7 +511,7 @@ process zoomify_and_balance{
 }
 
 /*
- * STEP 10 - Copy output to final destination
+ * STEP 10 - Run QC scripts and copy all output to final destination
 */
 
 process copy_to_output_iseq{
@@ -524,12 +524,14 @@ process copy_to_output_iseq{
         //Creates the Folder is it does not exist yet
         //Copy to output and dereference symlinks
         """
-        mkdir -p $params.outdir/$outputFolder/qc_and_stats
+        mkdir -p $params.outdir/$outputFolder/qc_and_stats/qc
         cp -rL ../../../$outputFolder/cooler $params.outdir/$outputFolder/unbalanced_cooler
         cp -rL ../../../$outputFolder/dedup_pairsam/stats $params.outdir/$outputFolder/qc_and_stats/stats
         cp -rL ../../../$outputFolder/fastqc $params.outdir/$outputFolder/qc_and_stats/fastqc
         cp -rL ../../../$outputFolder/s4t_pairsam $params.outdir/$outputFolder/all_pairs
         cp -rL ../../../$outputFolder/s4t_merged_pairsam $params.outdir/$outputFolder/cis_trans_pairs
+        python ${baseDir}/bin/check_duplications_trans_cis_dist.py --inputdir $params.outdir/$outputFolder/qc_and_stats/stats --resultsdir $params.outdir/$outputFolder/qc_and_stats/qc
+        python ${baseDir}/bin/count_double_labeled.py --inputdir ../../../$outputFolder --resultsdir $params.outdir/$outputFolder/qc_and_stats/qc
         """
 }
 
@@ -543,7 +545,7 @@ process copy_to_output_novaseq{
         //Creates the Folder is it does not exist yet
         //Copy to output and dereference symlinks
         """
-        mkdir -p $params.outdir/$outputFolder/qc_and_stats
+        mkdir -p $params.outdir/$outputFolder/qc_and_stats/qc
         cp -rL ../../../$outputFolder/balanced_cooler $params.outdir/$outputFolder/mcooler
         rm $params.outdir/$outputFolder/mcooler/*cis.1000.mcooler
         rm $params.outdir/$outputFolder/mcooler/*trans.1000.mcooler
@@ -552,5 +554,7 @@ process copy_to_output_novaseq{
         cp -rL ../../../$outputFolder/fastqc $params.outdir/$outputFolder/qc_and_stats/fastqc
         cp -rL ../../../$outputFolder/s4t_pairsam $params.outdir/$outputFolder/all_pairs
         cp -rL ../../../$outputFolder/s4t_merged_pairsam $params.outdir/$outputFolder/cis_trans_pairs
+        python ${baseDir}/bin/check_duplications_trans_cis_dist.py --inputdir $params.outdir/$outputFolder/qc_and_stats/stats --resultsdir $params.outdir/$outputFolder/qc_and_stats/qc
+        python ${baseDir}/bin/count_double_labeled.py --inputdir ../../../$outputFolder --resultsdir $params.outdir/$outputFolder/qc_and_stats/qc
         """
 }

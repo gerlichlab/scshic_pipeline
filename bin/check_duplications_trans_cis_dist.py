@@ -78,7 +78,7 @@ def qc1(inputdir, resultsdir):
     locs, labels = plt.xticks()
     plt.xticks(locs, labels, rotation=90)
     sbn.despine()
-    f.savefig(os.path.join(resultsdir, "Unqiue_Reads.png"), bbox_inches="tight")
+    f.savefig(os.path.join(resultsdir, "Unique_Reads.png"), bbox_inches="tight")
 
     # get cisTrans
 
@@ -102,7 +102,7 @@ def qc1(inputdir, resultsdir):
     ax.set_position([box.x0, box.y0, box.width * 0.8, box.height])
     # Put a legend to the right of the current axis
     ax.legend(loc="center left", bbox_to_anchor=(1, 0.5))
-    f.savefig(os.path.join(resultsdir, "CisTrans_Dist.png"), bbox_inches="tight")
+    f.savefig(os.path.join(resultsdir, "CisTrans_Distance.png"), bbox_inches="tight")
 
     # get cisDistance
 
