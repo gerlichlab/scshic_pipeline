@@ -524,7 +524,7 @@ process copy_to_output_iseq{
         //Creates the Folder is it does not exist yet
         //Copy to output and dereference symlinks
         """
-        mkdir -p $params.outdir/$outputFolder
+        mkdir -p $params.outdir/$outputFolder/qc_and_stats
         cp -rL ../../../$outputFolder/cooler $params.outdir/$outputFolder/unbalanced_cooler
         cp -rL ../../../$outputFolder/dedup_pairsam/stats $params.outdir/$outputFolder/qc_and_stats/stats
         cp -rL ../../../$outputFolder/fastqc $params.outdir/$outputFolder/qc_and_stats/fastqc
@@ -543,7 +543,7 @@ process copy_to_output_novaseq{
         //Creates the Folder is it does not exist yet
         //Copy to output and dereference symlinks
         """
-        mkdir -p $params.outdir/$outputFolder
+        mkdir -p $params.outdir/$outputFolder/qc_and_stats
         cp -rL ../../../$outputFolder/balanced_cooler $params.outdir/$outputFolder/mcooler
         rm $params.outdir/$outputFolder/mcooler/*cis.1000.mcooler
         rm $params.outdir/$outputFolder/mcooler/*trans.1000.mcooler
