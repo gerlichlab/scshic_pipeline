@@ -13,3 +13,5 @@ junk/*
 .vscode
 *.sif
 nf-out/*
+.vscode
+run_generated.sh
