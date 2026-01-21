@@ -49,6 +49,8 @@ params.skipDemultiplexing = false
 params.taskcpu = 38
 params.chrSizes="${baseDir}/bin/hg19.chrom.sizes"
 params.outdir="${baseDir}/nf-out"
+// Stop before cooler generation (skip steps 8-10)
+params.stopBeforeCoolers = false
 
 //Parameters for s4t mutations
 params.min_map_q = 30
@@ -468,6 +470,8 @@ process generate_cools{
         file (cis_pairs) from CH_cis_merged_pairs
     output:
         file "*cool" into CH_cools
+    when:
+        !params.stopBeforeCoolers
     script:
         trans_barcode = trans_pairs.getName().tokenize('_').get(0)
         trans_sample_ID = trans_pairs.getName().tokenize('_').get(1).tokenize('.').get(0)
@@ -503,7 +507,7 @@ process zoomify_and_balance{
     output:
         file "*mcool" into CH_mcools_novaseq
     when:
-        params.machinetype=='Novaseq'
+        params.machinetype=='Novaseq' && !params.stopBeforeCoolers
     script:
         """
         cooler zoomify ${cooler_2} -n 4 -r 1000,2000,4000,5000,6000,8000,10000,20000,50000,100000,200000,400000,500000,1000000,5000000 --balance --balance-args '--ignore-diags 0 --mad-max 5 --max-iters 500 --convergence-policy store_nan'
@@ -519,12 +523,13 @@ process copy_to_output_iseq{
     input:
         val (out) from CH_cools_iseq.collect()
     when:
-        params.machinetype=='Iseq'
+        params.machinetype=='Iseq' && !params.stopBeforeCoolers
     script:
         //Creates the Folder is it does not exist yet
         //Copy to output and dereference symlinks
         """
         mkdir -p $params.outdir/$outputFolder/qc_and_stats/qc
+        cp -rL ../../../$outputFolder/merged_fastq $params.outdir/$outputFolder/merged_fastq
         cp -rL ../../../$outputFolder/cooler $params.outdir/$outputFolder/unbalanced_cooler
         cp -rL ../../../$outputFolder/dedup_pairsam/stats $params.outdir/$outputFolder/qc_and_stats/stats
         cp -rL ../../../$outputFolder/fastqc $params.outdir/$outputFolder/qc_and_stats/fastqc
@@ -540,17 +545,55 @@ process copy_to_output_novaseq{
     input:
         val (out) from CH_mcools_novaseq.collect()
     when:
-        params.machinetype=='Novaseq'
+        params.machinetype=='Novaseq' && !params.stopBeforeCoolers
     script:
         //Creates the Folder is it does not exist yet
         //Copy to output and dereference symlinks
         """
         mkdir -p $params.outdir/$outputFolder/qc_and_stats/qc
+        cp -rL ../../../$outputFolder/merged_fastq $params.outdir/$outputFolder/merged_fastq
         cp -rL ../../../$outputFolder/balanced_cooler $params.outdir/$outputFolder/mcooler
         rm $params.outdir/$outputFolder/mcooler/*cis.1000.mcool
         rm $params.outdir/$outputFolder/mcooler/*trans.1000.mcool
         cp -rL ../../../$outputFolder/dedup_pairsam/stats $params.outdir/$outputFolder/qc_and_stats/stats
         cp -rL ../../../$outputFolder/cooler $params.outdir/$outputFolder/unbalanced_cooler
+        cp -rL ../../../$outputFolder/fastqc $params.outdir/$outputFolder/qc_and_stats/fastqc
+        cp -rL ../../../$outputFolder/s4t_pairsam $params.outdir/$outputFolder/all_pairs
+        cp -rL ../../../$outputFolder/s4t_merged_pairsam $params.outdir/$outputFolder/cis_trans_pairs
+        python ${baseDir}/bin/check_duplications_trans_cis_dist.py --inputdir $params.outdir/$outputFolder/qc_and_stats/stats --resultsdir $params.outdir/$outputFolder/qc_and_stats/qc
+        python ${baseDir}/bin/count_double_labeled.py --inputdir ../../../$outputFolder --resultsdir $params.outdir/$outputFolder/qc_and_stats/qc
+        """
+}
+
+// Copy outputs when stopping before coolers (no cooler artifacts available)
+process copy_to_output_iseq_precooler{
+    input:
+        val (out) from CH_dedup_pairsam_main.collect()
+    when:
+        params.machinetype=='Iseq' && params.stopBeforeCoolers
+    script:
+        """
+        mkdir -p $params.outdir/$outputFolder/qc_and_stats/qc
+        cp -rL ../../../$outputFolder/merged_fastq $params.outdir/$outputFolder/merged_fastq
+        cp -rL ../../../$outputFolder/dedup_pairsam/stats $params.outdir/$outputFolder/qc_and_stats/stats
+        cp -rL ../../../$outputFolder/fastqc $params.outdir/$outputFolder/qc_and_stats/fastqc
+        cp -rL ../../../$outputFolder/s4t_pairsam $params.outdir/$outputFolder/all_pairs
+        cp -rL ../../../$outputFolder/s4t_merged_pairsam $params.outdir/$outputFolder/cis_trans_pairs
+        python ${baseDir}/bin/check_duplications_trans_cis_dist.py --inputdir $params.outdir/$outputFolder/qc_and_stats/stats --resultsdir $params.outdir/$outputFolder/qc_and_stats/qc
+        python ${baseDir}/bin/count_double_labeled.py --inputdir ../../../$outputFolder --resultsdir $params.outdir/$outputFolder/qc_and_stats/qc
+        """
+}
+
+process copy_to_output_novaseq_precooler{
+    input:
+        val (out) from CH_dedup_pairsam_main.collect()
+    when:
+        params.machinetype=='Novaseq' && params.stopBeforeCoolers
+    script:
+        """
+        mkdir -p $params.outdir/$outputFolder/qc_and_stats/qc
+        cp -rL ../../../$outputFolder/merged_fastq $params.outdir/$outputFolder/merged_fastq
+        cp -rL ../../../$outputFolder/dedup_pairsam/stats $params.outdir/$outputFolder/qc_and_stats/stats
         cp -rL ../../../$outputFolder/fastqc $params.outdir/$outputFolder/qc_and_stats/fastqc
         cp -rL ../../../$outputFolder/s4t_pairsam $params.outdir/$outputFolder/all_pairs
         cp -rL ../../../$outputFolder/s4t_merged_pairsam $params.outdir/$outputFolder/cis_trans_pairs
