@@ -362,7 +362,7 @@ process dedup_pairs{
         """
 }
 
-CH_dedup_pairsam_main.into { CH_dedup_pairsam; CH_dedup_for_cooler}
+CH_dedup_pairsam_main.into { CH_dedup_pairsam; CH_dedup_for_cooler; CH_dedup_for_copy }
 
 /*
  * STEP 6 - Annotate S4T mutations
@@ -568,7 +568,7 @@ process copy_to_output_novaseq{
 // Copy outputs when stopping before coolers (no cooler artifacts available)
 process copy_to_output_iseq_precooler{
     input:
-        val (out) from CH_dedup_pairsam_main.collect()
+        val (out) from CH_dedup_for_copy.collect()
     when:
         params.machinetype=='Iseq' && params.stopBeforeCoolers
     script:
@@ -586,7 +586,7 @@ process copy_to_output_iseq_precooler{
 
 process copy_to_output_novaseq_precooler{
     input:
-        val (out) from CH_dedup_pairsam_main.collect()
+        val (out) from CH_dedup_for_copy.collect()
     when:
         params.machinetype=='Novaseq' && params.stopBeforeCoolers
     script:
