@@ -69,6 +69,7 @@ nohup nextflow ${BASEDIR}/main.nf -profile cluster \
     --machinetype $MACHINE \
     --experimentID $EXP_ID_CLEAN \
     --outdir $OUT \
+    --stopBeforeCoolers true \
     --doubleflowcell $FLOWCELL \
     -with-timeline ${OUT}/${EXP_ID_CLEAN}-${MACHINE}/nxf_log/timeline.html \
     -with-report ${OUT}/${EXP_ID_CLEAN}-${MACHINE}/nxf_log/report.html \
