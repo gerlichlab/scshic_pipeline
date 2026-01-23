@@ -383,6 +383,8 @@ process pairsam_to_pairs_all{
         """
 }
 
+    CH_all_pairs_for_cooler.into { CH_all_pairs_for_cooler_coolers; CH_all_pairs_for_cooler_iseq_precooler; CH_all_pairs_for_cooler_novaseq_precooler }
+
 /*
  * STEP 6 - Annotate S4T mutations
  */
@@ -452,6 +454,8 @@ process merge_cis_ref_comp{
         """
 }
 
+    CH_cis_merged_pairs.into { CH_cis_merged_pairs_coolers; CH_cis_merged_pairs_copy_iseq_precooler; CH_cis_merged_pairs_copy_novaseq_precooler }
+
 CH_trans_pairs
     .flatMap()
     .map { file ->
@@ -477,6 +481,8 @@ process merge_trans_ref_comp{
         """
 }
 
+    CH_trans_merged_pairs.into { CH_trans_merged_pairs_coolers; CH_trans_merged_pairs_copy_iseq_precooler; CH_trans_merged_pairs_copy_novaseq_precooler }
+
 /*
  * STEP 8 - Generate cools
  */
@@ -484,9 +490,9 @@ process merge_trans_ref_comp{
 process generate_cools{
     publishDir "$outputFolder/cooler", mode: 'symlink'
     input:
-        file (all_pairs) from CH_all_pairs_for_cooler
-        file (trans_pairs) from CH_trans_merged_pairs
-        file (cis_pairs) from CH_cis_merged_pairs
+        file (all_pairs) from CH_all_pairs_for_cooler_coolers
+        file (trans_pairs) from CH_trans_merged_pairs_coolers
+        file (cis_pairs) from CH_cis_merged_pairs_coolers
     output:
         file "*cool" into CH_cools
     when:
@@ -604,9 +610,9 @@ process copy_to_output_iseq_precooler{
     input:
         val (out) from CH_dedup_for_copy_iseq.collect()
         val fastqc_done from CH_fastqc_reports_iseq_precooler.collect()
-        val pairs_all_done from CH_all_pairs_for_cooler.collect()
-        val cis_pairs_done from CH_cis_merged_pairs.collect()
-        val trans_pairs_done from CH_trans_merged_pairs.collect()
+        val pairs_all_done from CH_all_pairs_for_cooler_iseq_precooler.collect()
+        val cis_pairs_done from CH_cis_merged_pairs_copy_iseq_precooler.collect()
+        val trans_pairs_done from CH_trans_merged_pairs_copy_iseq_precooler.collect()
     when:
         params.machinetype=='Iseq' && params.stopBeforeCoolers
     script:
@@ -632,9 +638,9 @@ process copy_to_output_novaseq_precooler{
     input:
         val (out) from CH_dedup_for_copy_novaseq.collect()
         val fastqc_done from CH_fastqc_reports_novaseq_precooler.collect()
-        val pairs_all_done from CH_all_pairs_for_cooler.collect()
-        val cis_pairs_done from CH_cis_merged_pairs.collect()
-        val trans_pairs_done from CH_trans_merged_pairs.collect()
+        val pairs_all_done from CH_all_pairs_for_cooler_novaseq_precooler.collect()
+        val cis_pairs_done from CH_cis_merged_pairs_copy_novaseq_precooler.collect()
+        val trans_pairs_done from CH_trans_merged_pairs_copy_novaseq_precooler.collect()
     when:
         params.machinetype=='Novaseq' && params.stopBeforeCoolers
     script:
