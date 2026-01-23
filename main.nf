@@ -365,6 +365,22 @@ process dedup_pairs{
 CH_dedup_pairsam_main.into { CH_dedup_pairsam; CH_dedup_for_cooler; CH_dedup_for_copy }
 CH_dedup_for_copy.into { CH_dedup_for_copy_iseq; CH_dedup_for_copy_novaseq }
 
+// Convert deduped pairsam (all contacts) to pairs for cooler generation and downstream copying
+process pairsam_to_pairs_all{
+    publishDir "$outputFolder/pairs_all", mode: 'symlink'
+    input:
+        file(pairsam) from CH_dedup_for_cooler
+    output:
+        file "*.pairs.gz" into CH_all_pairs_for_cooler
+    script:
+        barcode = pairsam.getName().tokenize('_').get(0)
+        sample_ID = pairsam.getName().tokenize('_').get(1).tokenize('.').get(0)
+        file_name = "${barcode}_${sample_ID}"
+        """
+        pairtools split --nproc ${nproc_pairsam} --output-pairs ${file_name}.all.pairs.gz --output-sam /dev/null ${pairsam}
+        """
+}
+
 /*
  * STEP 6 - Annotate S4T mutations
  */
@@ -466,7 +482,7 @@ process merge_trans_ref_comp{
 process generate_cools{
     publishDir "$outputFolder/cooler", mode: 'symlink'
     input:
-        file (all_pairs) from CH_dedup_for_cooler
+        file (all_pairs) from CH_all_pairs_for_cooler
         file (trans_pairs) from CH_trans_merged_pairs
         file (cis_pairs) from CH_cis_merged_pairs
     output:
@@ -534,7 +550,7 @@ process copy_to_output_iseq{
         cp -rL ../../../$outputFolder/cooler $params.outdir/$outputFolder/unbalanced_cooler
         cp -rL ../../../$outputFolder/dedup_pairsam/stats $params.outdir/$outputFolder/qc_and_stats/stats
         cp -rL ../../../$outputFolder/fastqc $params.outdir/$outputFolder/qc_and_stats/fastqc
-        cp -rL ../../../$outputFolder/s4t_pairsam $params.outdir/$outputFolder/all_pairs
+        cp -rL ../../../$outputFolder/pairs_all $params.outdir/$outputFolder/all_pairs
         cp -rL ../../../$outputFolder/s4t_merged_pairsam $params.outdir/$outputFolder/cis_trans_pairs
         python ${baseDir}/bin/check_duplications_trans_cis_dist.py --inputdir $params.outdir/$outputFolder/qc_and_stats/stats --resultsdir $params.outdir/$outputFolder/qc_and_stats/qc
         python ${baseDir}/bin/count_double_labeled.py --inputdir ../../../$outputFolder --resultsdir $params.outdir/$outputFolder/qc_and_stats/qc
@@ -559,7 +575,7 @@ process copy_to_output_novaseq{
         cp -rL ../../../$outputFolder/dedup_pairsam/stats $params.outdir/$outputFolder/qc_and_stats/stats
         cp -rL ../../../$outputFolder/cooler $params.outdir/$outputFolder/unbalanced_cooler
         cp -rL ../../../$outputFolder/fastqc $params.outdir/$outputFolder/qc_and_stats/fastqc
-        cp -rL ../../../$outputFolder/s4t_pairsam $params.outdir/$outputFolder/all_pairs
+        cp -rL ../../../$outputFolder/pairs_all $params.outdir/$outputFolder/all_pairs
         cp -rL ../../../$outputFolder/s4t_merged_pairsam $params.outdir/$outputFolder/cis_trans_pairs
         python ${baseDir}/bin/check_duplications_trans_cis_dist.py --inputdir $params.outdir/$outputFolder/qc_and_stats/stats --resultsdir $params.outdir/$outputFolder/qc_and_stats/qc
         python ${baseDir}/bin/count_double_labeled.py --inputdir ../../../$outputFolder --resultsdir $params.outdir/$outputFolder/qc_and_stats/qc
@@ -578,7 +594,7 @@ process copy_to_output_iseq_precooler{
         cp -rL ../../../$outputFolder/merged_fastq $params.outdir/$outputFolder/merged_fastq
         cp -rL ../../../$outputFolder/dedup_pairsam/stats $params.outdir/$outputFolder/qc_and_stats/stats
         cp -rL ../../../$outputFolder/fastqc $params.outdir/$outputFolder/qc_and_stats/fastqc
-        cp -rL ../../../$outputFolder/s4t_pairsam $params.outdir/$outputFolder/all_pairs
+        cp -rL ../../../$outputFolder/pairs_all $params.outdir/$outputFolder/all_pairs
         cp -rL ../../../$outputFolder/s4t_merged_pairsam $params.outdir/$outputFolder/cis_trans_pairs
         python ${baseDir}/bin/check_duplications_trans_cis_dist.py --inputdir $params.outdir/$outputFolder/qc_and_stats/stats --resultsdir $params.outdir/$outputFolder/qc_and_stats/qc
         python ${baseDir}/bin/count_double_labeled.py --inputdir ../../../$outputFolder --resultsdir $params.outdir/$outputFolder/qc_and_stats/qc
@@ -596,7 +612,7 @@ process copy_to_output_novaseq_precooler{
         cp -rL ../../../$outputFolder/merged_fastq $params.outdir/$outputFolder/merged_fastq
         cp -rL ../../../$outputFolder/dedup_pairsam/stats $params.outdir/$outputFolder/qc_and_stats/stats
         cp -rL ../../../$outputFolder/fastqc $params.outdir/$outputFolder/qc_and_stats/fastqc
-        cp -rL ../../../$outputFolder/s4t_pairsam $params.outdir/$outputFolder/all_pairs
+        cp -rL ../../../$outputFolder/pairs_all $params.outdir/$outputFolder/all_pairs
         cp -rL ../../../$outputFolder/s4t_merged_pairsam $params.outdir/$outputFolder/cis_trans_pairs
         python ${baseDir}/bin/check_duplications_trans_cis_dist.py --inputdir $params.outdir/$outputFolder/qc_and_stats/stats --resultsdir $params.outdir/$outputFolder/qc_and_stats/qc
         python ${baseDir}/bin/count_double_labeled.py --inputdir ../../../$outputFolder --resultsdir $params.outdir/$outputFolder/qc_and_stats/qc
