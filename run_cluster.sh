@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-DATE=$(date +"%Y-%m-%d-%H:%M:%S")
+DATE=$(date +"%Y-%m-%d-%H%M%S")
 
 echo "========================================================
 Log of the pipeline run is written to 'scshic_$DATE.log' and can be observed in this terminal.
