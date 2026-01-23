@@ -377,7 +377,7 @@ process pairsam_to_pairs_all{
         sample_ID = pairsam.getName().tokenize('_').get(1).tokenize('.').get(0)
         file_name = "${barcode}_${sample_ID}"
         """
-        pairtools split --nproc ${nproc_pairsam} --output-pairs ${file_name}.all.pairs.gz --output-sam /dev/null ${pairsam}
+        pairtools split --nproc-in ${nproc_pairsam} --nproc-out ${nproc_pairsam} --output-pairs ${file_name}.all.pairs.gz --output-sam /dev/null ${pairsam}
         """
 }
 
