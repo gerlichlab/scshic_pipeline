@@ -536,9 +536,10 @@ process zoomify_and_balance{
 */
 
 process copy_to_output_iseq{
-    //fake dependency for synchronization (barrier function)
+    // Barrier across upstream artifacts so copying waits for all inputs
     input:
         val (out) from CH_cools_iseq.collect()
+        val fastqc_done from CH_fastqc_reports.collect()
     when:
         params.machinetype=='Iseq' && !params.stopBeforeCoolers
     script:
@@ -558,9 +559,10 @@ process copy_to_output_iseq{
 }
 
 process copy_to_output_novaseq{
-    //fake dependency for synchronization (barrier function)
+    // Barrier across upstream artifacts so copying waits for all inputs
     input:
         val (out) from CH_mcools_novaseq.collect()
+        val fastqc_done from CH_fastqc_reports.collect()
     when:
         params.machinetype=='Novaseq' && !params.stopBeforeCoolers
     script:
@@ -584,8 +586,13 @@ process copy_to_output_novaseq{
 
 // Copy outputs when stopping before coolers (no cooler artifacts available)
 process copy_to_output_iseq_precooler{
+    // Barrier across upstream artifacts so copying waits for all inputs
     input:
         val (out) from CH_dedup_for_copy_iseq.collect()
+        val fastqc_done from CH_fastqc_reports.collect()
+        val pairs_all_done from CH_all_pairs_for_cooler.collect()
+        val cis_pairs_done from CH_cis_merged_pairs.collect()
+        val trans_pairs_done from CH_trans_merged_pairs.collect()
     when:
         params.machinetype=='Iseq' && params.stopBeforeCoolers
     script:
@@ -602,8 +609,13 @@ process copy_to_output_iseq_precooler{
 }
 
 process copy_to_output_novaseq_precooler{
+    // Barrier across upstream artifacts so copying waits for all inputs
     input:
         val (out) from CH_dedup_for_copy_novaseq.collect()
+        val fastqc_done from CH_fastqc_reports.collect()
+        val pairs_all_done from CH_all_pairs_for_cooler.collect()
+        val cis_pairs_done from CH_cis_merged_pairs.collect()
+        val trans_pairs_done from CH_trans_merged_pairs.collect()
     when:
         params.machinetype=='Novaseq' && params.stopBeforeCoolers
     script:
