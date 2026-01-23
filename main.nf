@@ -147,6 +147,8 @@ process fastqc{
         """
 }
 
+    CH_fastqc_reports.into { CH_fastqc_reports_iseq; CH_fastqc_reports_novaseq; CH_fastqc_reports_iseq_precooler; CH_fastqc_reports_novaseq_precooler }
+
 CH_demult_temp
             .map{ item ->
                 if (! "${item}".contains("Undetermined_")){
@@ -539,7 +541,7 @@ process copy_to_output_iseq{
     // Barrier across upstream artifacts so copying waits for all inputs
     input:
         val (out) from CH_cools_iseq.collect()
-        val fastqc_done from CH_fastqc_reports.collect()
+        val fastqc_done from CH_fastqc_reports_iseq.collect()
     when:
         params.machinetype=='Iseq' && !params.stopBeforeCoolers
     script:
@@ -568,7 +570,7 @@ process copy_to_output_novaseq{
     // Barrier across upstream artifacts so copying waits for all inputs
     input:
         val (out) from CH_mcools_novaseq.collect()
-        val fastqc_done from CH_fastqc_reports.collect()
+        val fastqc_done from CH_fastqc_reports_novaseq.collect()
     when:
         params.machinetype=='Novaseq' && !params.stopBeforeCoolers
     script:
@@ -601,7 +603,7 @@ process copy_to_output_iseq_precooler{
     // Barrier across upstream artifacts so copying waits for all inputs
     input:
         val (out) from CH_dedup_for_copy_iseq.collect()
-        val fastqc_done from CH_fastqc_reports.collect()
+        val fastqc_done from CH_fastqc_reports_iseq_precooler.collect()
         val pairs_all_done from CH_all_pairs_for_cooler.collect()
         val cis_pairs_done from CH_cis_merged_pairs.collect()
         val trans_pairs_done from CH_trans_merged_pairs.collect()
@@ -629,7 +631,7 @@ process copy_to_output_novaseq_precooler{
     // Barrier across upstream artifacts so copying waits for all inputs
     input:
         val (out) from CH_dedup_for_copy_novaseq.collect()
-        val fastqc_done from CH_fastqc_reports.collect()
+        val fastqc_done from CH_fastqc_reports_novaseq_precooler.collect()
         val pairs_all_done from CH_all_pairs_for_cooler.collect()
         val cis_pairs_done from CH_cis_merged_pairs.collect()
         val trans_pairs_done from CH_trans_merged_pairs.collect()
